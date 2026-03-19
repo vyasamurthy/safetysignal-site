@@ -1,3 +1,4 @@
+'use client'
 export default function OracleIntegration() {
   const integrations = [
     { name: 'Oracle Argus Safety (Cloud)', status: 'LIVE', color: '#10B981' },

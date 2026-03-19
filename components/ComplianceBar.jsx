@@ -1,3 +1,4 @@
+'use client'
 // ComplianceBar.jsx
 export function ComplianceBar() {
   const items = ['ICH E2B(R3)', 'GVP Module VI/IX', '21 CFR Part 11', 'CIOMS XIV', 'FDA FAERS', 'EMA EudraVigilance']

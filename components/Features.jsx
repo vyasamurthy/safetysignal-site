@@ -1,4 +1,5 @@
 'use client'
+'use client'
 
 const FEATURES = [
   { icon: '🧠', title: 'AI Causality Assessment', desc: 'Three-algorithm consensus using Naranjo, WHO-UMC, and Kramer — powered by SafetySignal-PV-7B v3, a 7.6B parameter model fine-tuned on real adverse event data. 80% agreement with Claude Sonnet 4.', tag: 'SafetySignal-PV-7B v3', bg: '#EFF6FF' },
