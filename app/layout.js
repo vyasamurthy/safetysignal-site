@@ -5,13 +5,23 @@ import Footer from '@/components/Footer'
 export const metadata = {
   title: 'SafetySignal AI — AI-Native Pharmacovigilance Platform',
   description: 'The world\'s first AI-native pharmacovigilance platform. Automate adverse event detection, causality assessment, E2B(R3) submissions, and benefit-risk evaluation — powered by SafetySignal-PV-7B.',
-  keywords: 'pharmacovigilance, adverse event, drug safety, ICH E2B, CIOMS XIV, Oracle Argus, signal detection, AI',
+  keywords: 'pharmacovigilance, adverse event, drug safety, ICH E2B, CIOMS XIV, Oracle Argus alternative, signal detection, AI pharmacovigilance software, adverse event reporting, drug safety platform, pharmacovigilance automation',
+  metadataBase: new URL('https://safetysignal.ai'),
+  alternates: { canonical: 'https://safetysignal.ai' },
+  robots: { index: true, follow: true },
   openGraph: {
     title: 'SafetySignal AI — AI-Native Pharmacovigilance',
     description: 'Automate PV with AI. Causality assessment in 3s. E2B(R3) XML in 20ms. BRAT benefit-risk in 50ms.',
     url: 'https://safetysignal.ai',
     siteName: 'SafetySignal AI',
     type: 'website',
+    locale: 'en_US',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'SafetySignal AI — AI-Native Pharmacovigilance',
+    description: 'The world\'s first AI-native PV platform. Causality assessment in 3s. E2B(R3) XML in 20ms.',
+    creator: '@safetysignalai',
   },
 }
 
