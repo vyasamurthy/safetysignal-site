@@ -17,7 +17,7 @@ export function Demo() {
         </div>
         <div style={{ maxWidth: '880px', margin: '0 auto' }}>
           <div style={{ borderRadius: '14px', overflow: 'hidden', border: '1px solid #E2EAF4', boxShadow: '0 12px 48px rgba(10,22,40,0.12)', background: '#0A1628', aspectRatio: '16/9', position: 'relative', cursor: 'pointer' }}>
-            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', background: 'linear-gradient(155deg,#0D1F3C,#0A2B52)' }}>
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', background: 'linear-gradient(155deg,#0D1F3C,#0A2B52)' }} onClick={() => window.open('/demo.html', '_blank')}>
               <div style={{ width: '68px', height: '68px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', color: 'white', background: 'rgba(37,99,235,0.5)' }}>▶</div>
               <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: '19px', color: 'white', fontWeight: 700 }}>SafetySignal AI — Full Platform Walkthrough</div>
               <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)' }}>Click to play · 4 min · Live system demo</div>
