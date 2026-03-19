@@ -1,10 +1,6 @@
 export default function robots() {
   return {
-    rules: {
-      userAgent: '*',
-      allow: '/',
-      disallow: '/api/',
-    },
+    rules: { userAgent: '*', allow: '/', disallow: '/api/' },
     sitemap: 'https://safetysignal.ai/sitemap.xml',
   }
 }
