@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SafetySignal AI — Platform Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;600&family=Space+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:#0A1628;color:#fff;height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+
+/* TOP BAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:48px;background:#0D1F3C;border-bottom:1px solid rgba(255,255,255,0.08);flex-shrink:0;}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;}
+.brand-mark{width:26px;height:26px;border-radius:6px;background:linear-gradient(135deg,#2563EB,#1A3A6B);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;}
+.brand-name span{color:#2563EB;}
+.topbar-right{display:flex;align-items:center;gap:16px;}
+.live-pill{display:flex;align-items:center;gap:5px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);border-radius:100px;padding:4px 10px;font-size:11px;color:#34D399;font-weight:600;}
+.live-dot{width:5px;height:5px;border-radius:50%;background:#10B981;animation:lp 2s infinite;}
+@keyframes lp{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,0.5);}50%{box-shadow:0 0 0 4px rgba(16,185,129,0);}}
+.env-badge{font-size:10px;font-family:'Space Mono',monospace;background:rgba(37,99,235,0.15);border:1px solid rgba(37,99,235,0.25);color:#93C5FD;padding:3px 8px;border-radius:4px;}
+
+/* LAYOUT */
+.main{display:flex;flex:1;overflow:hidden;}
+
+/* SIDEBAR */
+.sidebar{width:200px;background:#0D1F3C;border-right:1px solid rgba(255,255,255,0.07);display:flex;flex-direction:column;flex-shrink:0;}
+.sidebar-section{padding:12px 8px 4px;font-size:9px;font-weight:700;color:rgba(255,255,255,0.3);letter-spacing:1.5px;text-transform:uppercase;}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:6px;margin:1px 6px;cursor:pointer;font-size:13px;color:rgba(255,255,255,0.5);transition:all 0.15s;user-select:none;}
+.nav-item:hover{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.8);}
+.nav-item.active{background:rgba(37,99,235,0.15);color:#93C5FD;border-left:2px solid #2563EB;margin-left:4px;}
+.nav-icon{font-size:14px;width:18px;text-align:center;}
+.nav-badge{margin-left:auto;background:rgba(239,68,68,0.2);color:#FCA5A5;font-size:9px;font-weight:700;padding:1px 5px;border-radius:100px;font-family:'Space Mono',monospace;}
+.sidebar-bottom{margin-top:auto;padding:12px;border-top:1px solid rgba(255,255,255,0.06);}
+.user-card{display:flex;align-items:center;gap:8px;}
+.avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#2563EB,#7C3AED);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
+.user-info{}
+.user-name{font-size:12px;font-weight:600;color:rgba(255,255,255,0.8);}
+.user-role{font-size:10px;color:rgba(255,255,255,0.3);}
+
+/* CONTENT */
+.content{flex:1;overflow:auto;padding:20px;}
+
+/* PANELS */
+.panel{display:none;}
+.panel.active{display:block;}
+
+/* HEADER ROW */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.page-title{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;color:#fff;}
+.page-sub{font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px;}
+.header-actions{display:flex;gap:8px;}
+.btn{padding:7px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all 0.15s;}
+.btn-primary{background:#2563EB;color:#fff;}
+.btn-primary:hover{background:#1D4ED8;}
+.btn-ghost{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.1);}
+.btn-ghost:hover{background:rgba(255,255,255,0.1);}
+
+/* METRIC CARDS */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+.metric{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px 16px;}
+.metric-label{font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+.metric-value{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;color:#fff;line-height:1;}
+.metric-delta{font-size:11px;margin-top:4px;}
+.delta-up{color:#34D399;}
+.delta-down{color:#FCA5A5;}
+
+/* TABLE */
+.table-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;overflow:hidden;}
+.table-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.07);}
+.table-title{font-size:13px;font-weight:600;color:rgba(255,255,255,0.8);}
+table{width:100%;border-collapse:collapse;}
+thead tr{background:rgba(255,255,255,0.03);}
+th{padding:8px 14px;text-align:left;font-size:10px;font-weight:700;color:rgba(255,255,255,0.3);letter-spacing:1px;text-transform:uppercase;}
+td{padding:10px 14px;font-size:12px;color:rgba(255,255,255,0.75);border-bottom:1px solid rgba(255,255,255,0.04);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,0.03);}
+
+/* BADGES */
+.badge{display:inline-block;padding:2px 8px;border-radius:100px;font-size:10px;font-weight:700;font-family:'Space Mono',monospace;}
+.badge-red{background:rgba(239,68,68,0.15);color:#FCA5A5;}
+.badge-amber{background:rgba(245,158,11,0.15);color:#FCD34D;}
+.badge-blue{background:rgba(59,130,246,0.15);color:#93C5FD;}
+.badge-green{background:rgba(16,185,129,0.15);color:#34D399;}
+.badge-purple{background:rgba(139,92,246,0.15);color:#C4B5FD;}
+
+/* SIGNAL QUEUE */
+.signal-row{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;transition:background 0.15s;}
+.signal-row:hover{background:rgba(255,255,255,0.04);}
+.signal-icon{font-size:16px;width:24px;text-align:center;}
+.signal-info{flex:1;}
+.signal-name{font-size:12px;font-weight:600;color:rgba(255,255,255,0.9);}
+.signal-meta{font-size:10px;color:rgba(255,255,255,0.35);margin-top:1px;}
+.signal-score{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;}
+
+/* DETAIL PANEL */
+.detail{background:rgba(37,99,235,0.06);border:1px solid rgba(37,99,235,0.15);border-radius:10px;padding:16px;margin-top:12px;}
+.detail-header{font-size:12px;font-weight:700;color:#93C5FD;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.detail-item{}
+.detail-label{font-size:10px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.5px;}
+.detail-value{font-size:12px;color:rgba(255,255,255,0.85);font-weight:500;margin-top:2px;}
+
+/* XML */
+.xml-box{background:#020A14;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:14px;font-family:'Space Mono',monospace;font-size:10px;line-height:1.7;color:#94A3B8;overflow-x:auto;max-height:280px;overflow-y:auto;}
+.xml-tag{color:#60A5FA;}
+.xml-attr{color:#34D399;}
+.xml-val{color:#FCD34D;}
+.xml-comment{color:#475569;}
+
+/* PROGRESS BAR */
+.progress-bar{height:4px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;margin-top:4px;}
+.progress-fill{height:100%;border-radius:2px;transition:width 0.5s ease;}
+
+/* TABS */
+.tabs{display:flex;gap:2px;background:rgba(255,255,255,0.04);border-radius:8px;padding:3px;margin-bottom:16px;width:fit-content;}
+.tab{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;color:rgba(255,255,255,0.4);transition:all 0.15s;user-select:none;}
+.tab.active{background:#2563EB;color:#fff;}
+
+/* PROCESSING ANIMATION */
+@keyframes processingPulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
+.processing{animation:processingPulse 1.5s infinite;}
+
+/* BENEFIT RISK */
+.br-bar{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.br-label{font-size:11px;color:rgba(255,255,255,0.5);width:140px;flex-shrink:0;}
+.br-track{flex:1;height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;}
+.br-fill-benefit{background:linear-gradient(90deg,#10B981,#34D399);}
+.br-fill-risk{background:linear-gradient(90deg,#EF4444,#FCA5A5);}
+.br-val{font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,0.5);width:36px;text-align:right;}
+
+/* STEP WIZARD */
+.step-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);}
+.step-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
+.step-done{background:rgba(16,185,129,0.2);color:#34D399;border:1px solid rgba(16,185,129,0.3);}
+.step-active{background:rgba(37,99,235,0.2);color:#93C5FD;border:1px solid rgba(37,99,235,0.3);}
+.step-pending{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.3);border:1px solid rgba(255,255,255,0.08);}
+.step-text{font-size:12px;color:rgba(255,255,255,0.7);flex:1;}
+.step-time{font-size:10px;font-family:'Space Mono',monospace;color:rgba(255,255,255,0.3);}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-mark">SS</div>
+    <div class="brand-name">Safety<span>Signal</span> AI</div>
+  </div>
+  <div class="topbar-right">
+    <div class="live-pill"><div class="live-dot"></div>Live · Sprint 66</div>
+    <div class="env-badge">SafetySignal-PV-7B v3</div>
+    <div class="env-badge">3,000+ Cases</div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section">PV Operations</div>
+    <div class="nav-item active" onclick="show('dashboard')"><div class="nav-icon">📊</div>Dashboard</div>
+    <div class="nav-item" onclick="show('cases')"><div class="nav-icon">📋</div>Case Queue<div class="nav-badge">12</div></div>
+    <div class="nav-item" onclick="show('signals')"><div class="nav-icon">🚨</div>Signal Queue<div class="nav-badge">3</div></div>
+    <div class="nav-item" onclick="show('causality')"><div class="nav-icon">🧠</div>Causality AI</div>
+    <div class="sidebar-section">Regulatory</div>
+    <div class="nav-item" onclick="show('e2b')"><div class="nav-icon">📄</div>E2B(R3) Generator</div>
+    <div class="nav-item" onclick="show('benefitrisk')"><div class="nav-icon">⚖️</div>Benefit-Risk</div>
+    <div class="nav-item" onclick="show('labeling')"><div class="nav-icon">🏷️</div>Labeling Gaps</div>
+    <div class="sidebar-section">Intelligence</div>
+    <div class="nav-item" onclick="show('literature')"><div class="nav-icon">📚</div>Literature Scan</div>
+    <div class="nav-item" onclick="show('trending')"><div class="nav-icon">📈</div>Signal Trending</div>
+    <div class="sidebar-bottom">
+      <div class="user-card">
+        <div class="avatar">VM</div>
+        <div class="user-info">
+          <div class="user-name">Vyasa Murthy</div>
+          <div class="user-role">Managing Partner</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="page-header">
+        <div><div class="page-title">Regulatory Intelligence Dashboard</div><div class="page-sub">Real-time platform health · CIOMS XIV compliant · Sprint 64</div></div>
+        <div class="header-actions">
+          <button class="btn btn-ghost" onclick="show('cases')">View Cases</button>
+          <button class="btn btn-primary" onclick="show('signals')">Signal Queue</button>
+        </div>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="metric-label">Platform Health</div><div class="metric-value" style="color:#34D399;">94.3%</div><div class="metric-delta delta-up">↑ CIOMS XIV Compliant</div></div>
+        <div class="metric"><div class="metric-label">Cases Processed</div><div class="metric-value">3,000+</div><div class="metric-delta delta-up">↑ 325 this week</div></div>
+        <div class="metric"><div class="metric-label">Open Signals</div><div class="metric-value" style="color:#FCA5A5;">15</div><div class="metric-delta delta-down">3 CRITICAL</div></div>
+        <div class="metric"><div class="metric-label">Assessment Rate</div><div class="metric-value">80.5%</div><div class="metric-delta delta-up">↑ 2.1% vs last month</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div class="table-card">
+          <div class="table-header"><div class="table-title">Priority Actions Required</div></div>
+          <div style="padding:10px 14px;">
+            <div class="step-row"><div class="step-num step-done">!</div><div class="step-text">PSUR overdue — Amoxicillin · EMA submission</div><div class="step-time" style="color:#FCA5A5;">21 days overdue</div></div>
+            <div class="step-row"><div class="step-num step-active">!</div><div class="step-text">CBE-0 Boxed Warning — QT Prolongation</div><div class="step-time" style="color:#FCD34D;">Due today</div></div>
+            <div class="step-row"><div class="step-num step-pending">!</div><div class="step-text">3 CRITICAL signals require immediate review</div><div class="step-time">Immediate</div></div>
+            <div class="step-row" style="border-bottom:none;"><div class="step-num step-pending">!</div><div class="step-text">Type II Variation — Hepatotoxicity Warning</div><div class="step-time">14 days</div></div>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-header"><div class="table-title">CIOMS XIV Compliance</div></div>
+          <div style="padding:10px 14px;">
+            <div class="br-bar"><div class="br-label">Case Processing (GVP VI)</div><div class="br-track"><div class="br-fill-benefit progress-fill" style="width:96%"></div></div><div class="br-val">96%</div></div>
+            <div class="br-bar"><div class="br-label">Signal Management (GVP IX)</div><div class="br-track"><div class="br-fill-benefit progress-fill" style="width:90%"></div></div><div class="br-val">90%</div></div>
+            <div class="br-bar"><div class="br-label">Aggregate Reporting</div><div class="br-track"><div class="br-fill-benefit progress-fill" style="width:94%"></div></div><div class="br-val">94.4%</div></div>
+            <div class="br-bar"><div class="br-label">RMP (GVP Module V)</div><div class="br-track"><div class="br-fill-benefit progress-fill" style="width:100%"></div></div><div class="br-val">100%</div></div>
+            <div class="br-bar"><div class="br-label">REMS Compliance</div><div class="br-track"><div class="br-fill-benefit progress-fill" style="width:92%"></div></div><div class="br-val">91.7%</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="table-card">
+        <div class="table-header"><div class="table-title">Weekly Case Intake Trend</div><span class="badge badge-green">344 drug-AE pairs tracked</span></div>
+        <table>
+          <thead><tr><th>Week</th><th>Cases</th><th>Unique Drugs</th><th>Unique AEs</th><th>WoW Change</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>Mar 16–22</td><td>325</td><td>143</td><td>212</td><td><span style="color:#34D399">↑ 1931.2%</span></td><td><span class="badge badge-red">Bulk Import</span></td></tr>
+            <tr><td>Mar 09–15</td><td>16</td><td>12</td><td>16</td><td><span style="color:#FCA5A5">↓ 46.7%</span></td><td><span class="badge badge-green">Normal</span></td></tr>
+            <tr><td>Mar 02–08</td><td>30</td><td>25</td><td>29</td><td><span style="color:#34D399">↑ 400.0%</span></td><td><span class="badge badge-amber">Elevated</span></td></tr>
+            <tr><td>Feb 23–Mar 01</td><td>6</td><td>5</td><td>5</td><td><span style="color:#FCA5A5">↓ 82.9%</span></td><td><span class="badge badge-green">Normal</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CASE QUEUE -->
+    <div class="panel" id="panel-cases">
+      <div class="page-header">
+        <div><div class="page-title">Case Processing Queue</div><div class="page-sub">AI triage · MedDRA auto-coding · Causality assessment pipeline</div></div>
+        <div class="header-actions">
+          <button class="btn btn-ghost">Import FAERS</button>
+          <button class="btn btn-primary" onclick="runCaseDemo()">▶ Process Case</button>
+        </div>
+      </div>
+      <div id="case-demo-steps" style="display:none;" class="table-card" style="margin-bottom:12px;">
+        <div class="table-header"><div class="table-title processing">⚡ Processing CASE-20260316-JAKAFI-0042...</div></div>
+        <div style="padding:12px 14px;" id="steps-container"></div>
+      </div>
+      <div class="table-card">
+        <div class="table-header"><div class="table-title">Case Queue — 12 Active</div><span class="badge badge-blue">Auto-sorted by priority</span></div>
+        <table>
+          <thead><tr><th>Case ID</th><th>Drug</th><th>Adverse Event</th><th>Naranjo</th><th>WHO-UMC</th><th>Serious</th><th>Status</th><th>Priority</th></tr></thead>
+          <tbody>
+            <tr onclick="show('causality')"><td style="color:#60A5FA;cursor:pointer;font-family:'Space Mono',monospace;font-size:10px;">FAERS-10004640</td><td>Amoxicillin</td><td>Anaphylactic reaction</td><td><span style="color:#34D399;font-weight:700;">5</span></td><td><span class="badge badge-amber">Probable</span></td><td><span class="badge badge-red">YES</span></td><td><span class="badge badge-green">Complete</span></td><td><span class="badge badge-red">CRITICAL</span></td></tr>
+            <tr><td style="font-family:'Space Mono',monospace;font-size:10px;">FAERS-10004622</td><td>XARELTO</td><td>Death</td><td><span style="color:#34D399;font-weight:700;">7</span></td><td><span class="badge badge-red">Probable</span></td><td><span class="badge badge-red">YES</span></td><td><span class="badge badge-green">Complete</span></td><td><span class="badge badge-red">HIGH</span></td></tr>
+            <tr><td style="font-family:'Space Mono',monospace;font-size:10px;">FAERS-10004589</td><td>JAKAFI</td><td>Thrombocytopenia</td><td>4</td><td><span class="badge badge-amber">Possible</span></td><td><span class="badge badge-red">YES</span></td><td><span class="badge badge-green">Complete</span></td><td><span class="badge badge-amber">HIGH</span></td></tr>
+            <tr><td style="font-family:'Space Mono',monospace;font-size:10px;">FAERS-10004571</td><td>HUMIRA</td><td>Injection site reaction</td><td>3</td><td><span class="badge badge-blue">Possible</span></td><td><span class="badge badge-green">NO</span></td><td><span class="badge badge-green">Complete</span></td><td><span class="badge badge-blue">MED</span></td></tr>
+            <tr><td style="font-family:'Space Mono',monospace;font-size:10px;">CASE-20260316-0011</td><td>Relacorilant</td><td>Nausea</td><td>2</td><td><span class="badge badge-blue">Unlikely</span></td><td><span class="badge badge-green">NO</span></td><td><span class="badge badge-amber">Pending</span></td><td><span class="badge badge-blue">LOW</span></td></tr>
+            <tr><td style="font-family:'Space Mono',monospace;font-size:10px;">CASE-20260316-0009</td><td>LIPITOR</td><td>Type 2 diabetes mellitus</td><td>4</td><td><span class="badge badge-amber">Possible</span></td><td><span class="badge badge-green">NO</span></td><td><span class="badge badge-amber">Pending</span></td><td><span class="badge badge-amber">MED</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SIGNAL QUEUE -->
+    <div class="panel" id="panel-signals">
+      <div class="page-header">
+        <div><div class="page-title">Signal Detection Queue</div><div class="page-sub">Composite priority scoring · PRR/ROR/IC/EBGM · Labeling gap detection</div></div>
+        <div class="header-actions">
+          <button class="btn btn-ghost">Portfolio Scan</button>
+          <button class="btn btn-primary">Export Queue</button>
+        </div>
+      </div>
+      <div class="metrics" style="grid-template-columns:repeat(4,1fr);">
+        <div class="metric"><div class="metric-label">CRITICAL</div><div class="metric-value" style="color:#EF4444;">3</div><div class="metric-delta delta-down">15-day expedited required</div></div>
+        <div class="metric"><div class="metric-label">HIGH Priority</div><div class="metric-value" style="color:#FCD34D;">5</div><div class="metric-delta delta-down">Medical review required</div></div>
+        <div class="metric"><div class="metric-label">MEDIUM</div><div class="metric-value" style="color:#93C5FD;">7</div><div class="metric-delta">Under surveillance</div></div>
+        <div class="metric"><div class="metric-label">New Signals (WoW)</div><div class="metric-value">296</div><div class="metric-delta delta-up">↑ from bulk import</div></div>
+      </div>
+      <div class="table-card">
+        <div class="table-header"><div class="table-title">Ranked Signal Queue</div><span class="badge badge-blue">AI composite scoring</span></div>
+        <div id="signal-detail" style="display:none;" class="detail">
+          <div class="detail-header">Signal Detail — Amoxicillin → Anaphylactic Reaction</div>
+          <div class="detail-grid">
+            <div class="detail-item"><div class="detail-label">PRR</div><div class="detail-value" style="color:#FCA5A5;">303.2 (CI: 289.1–317.8)</div></div>
+            <div class="detail-item"><div class="detail-label">ROR</div><div class="detail-value" style="color:#FCA5A5;">1,313.4</div></div>
+            <div class="detail-item"><div class="detail-label">IC (Information Component)</div><div class="detail-value">4.8 bits</div></div>
+            <div class="detail-item"><div class="detail-label">Naranjo Avg</div><div class="detail-value">5.3 (Probable)</div></div>
+            <div class="detail-item"><div class="detail-label">Labeling Status</div><div class="detail-value" style="color:#FCA5A5;">UNLISTED — 15-DAY REQUIRED</div></div>
+            <div class="detail-item"><div class="detail-label">SAE Rate</div><div class="detail-value">100% (10/10 cases)</div></div>
+          </div>
+        </div>
+        <div class="signal-row" onclick="toggleSignal()" style="cursor:pointer;">
+          <div class="signal-icon">🚨</div>
+          <div class="signal-info"><div class="signal-name">Amoxicillin → Anaphylactic Reaction</div><div class="signal-meta">PRR 303 · ROR 1,313 · 10 cases · UNLISTED in labeling</div></div>
+          <div class="signal-score" style="color:#EF4444;">92/100</div>
+          <span class="badge badge-red" style="margin-left:8px;">CRITICAL</span>
+        </div>
+        <div class="signal-row"><div class="signal-icon">🚨</div><div class="signal-info"><div class="signal-name">XARELTO → Fatal outcome</div><div class="signal-meta">PRR 85 · ROR 290 · 7 cases · Listed — Fatal</div></div><div class="signal-score" style="color:#EF4444;">78/100</div><span class="badge badge-red" style="margin-left:8px;">CRITICAL</span></div>
+        <div class="signal-row"><div class="signal-icon">⚠️</div><div class="signal-info"><div class="signal-name">JAKAFI → Thrombocytopenia</div><div class="signal-meta">PRR 16.1 · 3 algorithms detecting · NEW SIGNAL</div></div><div class="signal-score" style="color:#FCD34D;">68/100</div><span class="badge badge-amber" style="margin-left:8px;">HIGH</span></div>
+        <div class="signal-row"><div class="signal-icon">⚠️</div><div class="signal-info"><div class="signal-name">HOLOXAN → Disease Progression</div><div class="signal-meta">PRR 22 · 10 cases · New signal Mar 16</div></div><div class="signal-score" style="color:#FCD34D;">61/100</div><span class="badge badge-amber" style="margin-left:8px;">HIGH</span></div>
+        <div class="signal-row"><div class="signal-icon">📊</div><div class="signal-info"><div class="signal-name">LIPITOR → Type 2 Diabetes Mellitus</div><div class="signal-meta">PRR 8.2 · Known class effect · Rising</div></div><div class="signal-score" style="color:#93C5FD;">46/100</div><span class="badge badge-blue" style="margin-left:8px;">MED</span></div>
+      </div>
+    </div>
+
+    <!-- CAUSALITY AI -->
+    <div class="panel" id="panel-causality">
+      <div class="page-header">
+        <div><div class="page-title">AI Causality Assessment</div><div class="page-sub">SafetySignal-PV-7B v3 · Naranjo · WHO-UMC · Kramer · 3-algorithm consensus</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="table-card">
+          <div class="table-header"><div class="table-title">Case — FAERS-10004640</div><span class="badge badge-red">15-DAY EXPEDITED</span></div>
+          <div style="padding:12px 14px;">
+            <div class="step-row"><div class="step-num step-done">✓</div><div class="step-text">Case intake — FAERS source</div><div class="step-time">0.01s</div></div>
+            <div class="step-row"><div class="step-num step-done">✓</div><div class="step-text">MedDRA auto-coding — Anaphylactic reaction (LLT 10002198)</div><div class="step-time">0.08s</div></div>
+            <div class="step-row"><div class="step-num step-done">✓</div><div class="step-text">Naranjo algorithm — Score: 5 (Probable)</div><div class="step-time">2.8s</div></div>
+            <div class="step-row"><div class="step-num step-done">✓</div><div class="step-text">WHO-UMC — Category: Probable</div><div class="step-time">2.9s</div></div>
+            <div class="step-row"><div class="step-num step-done">✓</div><div class="step-text">Kramer — Score: 6 (Probable)</div><div class="step-time">3.1s</div></div>
+            <div class="step-row" style="border-bottom:none;"><div class="step-num step-done">✓</div><div class="step-text">Consensus — PROBABLE · Listedness: UNLISTED</div><div class="step-time">3.2s</div></div>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-header"><div class="table-title">Naranjo Score Breakdown</div></div>
+          <div style="padding:12px 14px;">
+            <div class="br-bar"><div class="br-label">Q1 Prior conclusive report?</div><div class="br-track"><div class="br-fill-benefit progress-fill" style="width:100%"></div></div><div class="br-val">+1</div></div>
+            <div class="br-bar"><div class="br-label">Q2 AE after drug admin?</div><div class="br-track"><div class="br-fill-benefit progress-fill" style="width:100%"></div></div><div class="br-val">+2</div></div>
+            <div class="br-bar"><div class="br-label">Q3 Resolved on withdraw?</div><div class="br-track"><div class="br-fill-benefit progress-fill" style="width:100%"></div></div><div class="br-val">+1</div></div>
+            <div class="br-bar"><div class="br-label">Q4 AE reappeared?</div><div class="br-track"><div class="br-fill-benefit progress-fill" style="width:0%"></div></div><div class="br-val">0</div></div>
+            <div class="br-bar"><div class="br-label">Q5 Alternative causes?</div><div class="br-track"><div class="br-fill-benefit progress-fill" style="width:100%"></div></div><div class="br-val">+1</div></div>
+            <div class="br-bar"><div class="br-label">Q6 Placebo reaction?</div><div class="br-track"><div class="br-fill-benefit progress-fill" style="width:0%"></div></div><div class="br-val">0</div></div>
+            <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.07);display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:12px;color:rgba(255,255,255,0.5);">Total Naranjo Score</span>
+              <span style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:#34D399;">5 — PROBABLE</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="detail" style="margin-top:12px;">
+        <div class="detail-header">SafetySignal-PV-7B v3 — AI Narrative Output</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.7);line-height:1.7;font-style:italic;">"A 52-year-old female received Amoxicillin 500mg orally for tooth abscess. The patient developed anaphylactic reaction approximately 30 minutes after administration. Outcome: recovered with treatment (epinephrine administered). Causality: Naranjo score 5 (Probable), WHO-UMC: Probable, Consensus: Probable. Confounder analysis: No alternative causative agents identified. Listedness: UNLISTED in current CDS — 15-day expedited report required per ICH E2B(R3). Generated by SafetySignal AI — Venture Vertex LLC."</div>
+      </div>
+    </div>
+
+    <!-- E2B GENERATOR -->
+    <div class="panel" id="panel-e2b">
+      <div class="page-header">
+        <div><div class="page-title">ICH E2B(R3) XML Generator</div><div class="page-sub">Submission-ready ICSRs · FDA FAERS · EMA EudraVigilance · 0.02s generation</div></div>
+        <div class="header-actions">
+          <button class="btn btn-ghost">Batch Generate</button>
+          <button class="btn btn-primary" onclick="generateE2B()">Generate XML</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <div class="table-card" style="margin-bottom:12px;">
+            <div class="table-header"><div class="table-title">Generation Summary</div></div>
+            <div style="padding:12px 14px;">
+              <div class="detail-grid">
+                <div class="detail-item"><div class="detail-label">Safety Report ID</div><div class="detail-value" style="font-family:'Space Mono',monospace;font-size:10px;">US-SSAI-FAERS-10004640</div></div>
+                <div class="detail-item"><div class="detail-label">Standard</div><div class="detail-value">ICH E2B(R3) · HL7 v3</div></div>
+                <div class="detail-item"><div class="detail-label">Authority</div><div class="detail-value">FDA FAERS (FDA_ESG)</div></div>
+                <div class="detail-item"><div class="detail-label">Seriousness</div><div class="detail-value" style="color:#FCA5A5;">SERIOUS · Hospitalization</div></div>
+                <div class="detail-item"><div class="detail-label">Expedited</div><div class="detail-value" style="color:#FCA5A5;">YES — 15-day report</div></div>
+                <div class="detail-item"><div class="detail-label">Generation time</div><div class="detail-value" style="color:#34D399;">0.02 seconds</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="table-card">
+            <div class="table-header"><div class="table-title">Submission Log</div></div>
+            <table>
+              <thead><tr><th>Report ID</th><th>Version</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td style="font-family:'Space Mono',monospace;font-size:9px;">US-SSAI-FDA-20260302</td><td>R3</td><td><span class="badge badge-green">Acknowledged</span></td></tr>
+                <tr><td style="font-family:'Space Mono',monospace;font-size:9px;">US-SSAI-FDA-20260218</td><td>R3</td><td><span class="badge badge-blue">Validated</span></td></tr>
+                <tr><td style="font-family:'Space Mono',monospace;font-size:9px;">US-SSAI-EMA-20260210</td><td>R3</td><td><span class="badge badge-green">Submitted</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-header"><div class="table-title">Generated E2B(R3) XML</div><span class="badge badge-green" id="xml-status">Ready</span></div>
+          <div class="xml-box" id="xml-output">
+<span class="xml-comment">&lt;!-- ICH E2B(R3) ICSR — SafetySignal AI --&gt;</span>
+<span class="xml-tag">&lt;ichicsr</span> <span class="xml-attr">lang</span>=<span class="xml-val">"en"</span> <span class="xml-attr">xmlns</span>=<span class="xml-val">"urn:hl7-org:v3"</span><span class="xml-tag">&gt;</span>
+  <span class="xml-tag">&lt;messagenumberstr&gt;</span>SSAI-20260319-FDA-10004640<span class="xml-tag">&lt;/messagenumberstr&gt;</span>
+  <span class="xml-tag">&lt;messagesenderidentifier&gt;</span>SafetySignalAI-VentureVertex<span class="xml-tag">&lt;/messagesenderidentifier&gt;</span>
+  <span class="xml-tag">&lt;messagereceiveridentifier&gt;</span>FDA_ESG<span class="xml-tag">&lt;/messagereceiveridentifier&gt;</span>
+  <span class="xml-tag">&lt;messagedate&gt;</span>20260319141532<span class="xml-tag">&lt;/messagedate&gt;</span>
+  <span class="xml-tag">&lt;safetyreport&gt;</span>
+    <span class="xml-tag">&lt;safetyreportid&gt;</span>US-SSAI-FAERS-10004640<span class="xml-tag">&lt;/safetyreportid&gt;</span>
+    <span class="xml-tag">&lt;serious&gt;</span>1<span class="xml-tag">&lt;/serious&gt;</span>
+    <span class="xml-tag">&lt;seriousnesshospitalization&gt;</span>1<span class="xml-tag">&lt;/seriousnesshospitalization&gt;</span>
+    <span class="xml-tag">&lt;patient&gt;</span>
+      <span class="xml-tag">&lt;patientinitial&gt;</span>ANON<span class="xml-tag">&lt;/patientinitial&gt;</span>
+      <span class="xml-tag">&lt;patientonsetage&gt;</span>52<span class="xml-tag">&lt;/patientonsetage&gt;</span>
+      <span class="xml-tag">&lt;patientsex&gt;</span>2<span class="xml-tag">&lt;/patientsex&gt;</span>
+      <span class="xml-tag">&lt;reaction&gt;</span>
+        <span class="xml-tag">&lt;primarysourcereaction&gt;</span>Anaphylactic reaction<span class="xml-tag">&lt;/primarysourcereaction&gt;</span>
+        <span class="xml-tag">&lt;reactionmeddrallt&gt;</span>Anaphylactic reaction<span class="xml-tag">&lt;/reactionmeddrallt&gt;</span>
+        <span class="xml-tag">&lt;reactionoutcome&gt;</span>1<span class="xml-tag">&lt;/reactionoutcome&gt;</span>
+      <span class="xml-tag">&lt;/reaction&gt;</span>
+      <span class="xml-tag">&lt;drug&gt;</span>
+        <span class="xml-tag">&lt;medicinalproduct&gt;</span>Amoxicillin<span class="xml-tag">&lt;/medicinalproduct&gt;</span>
+        <span class="xml-tag">&lt;drugdosagetext&gt;</span>500mg oral<span class="xml-tag">&lt;/drugdosagetext&gt;</span>
+        <span class="xml-tag">&lt;drugresult&gt;</span>5<span class="xml-tag">&lt;/drugresult&gt;</span>
+        <span class="xml-comment">&lt;!-- Naranjo: 5 — Probable --&gt;</span>
+      <span class="xml-tag">&lt;/drug&gt;</span>
+    <span class="xml-tag">&lt;/patient&gt;</span>
+  <span class="xml-tag">&lt;/safetyreport&gt;</span>
+<span class="xml-tag">&lt;/ichicsr&gt;</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BENEFIT RISK -->
+    <div class="panel" id="panel-benefitrisk">
+      <div class="page-header">
+        <div><div class="page-title">BRAT Benefit-Risk Assessment</div><div class="page-sub">AI-native · ICH E2C(R2) aligned · First-in-class · Sprint 66</div></div>
+        <div class="header-actions">
+          <button class="btn btn-ghost" onclick="show('dashboard')">Portfolio View</button>
+          <button class="btn btn-primary">Export BRAT Report</button>
+        </div>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="metric-label">Benefit Score</div><div class="metric-value" style="color:#34D399;">0.5392</div><div class="metric-delta delta-up">↑ Favorable</div></div>
+        <div class="metric"><div class="metric-label">Risk Score</div><div class="metric-value" style="color:#FCA5A5;">0.3701</div><div class="metric-delta delta-down">HIGH SAE rate</div></div>
+        <div class="metric"><div class="metric-label">B/R Ratio</div><div class="metric-value" style="color:#93C5FD;">1.46</div><div class="metric-delta">Marginally favorable</div></div>
+        <div class="metric"><div class="metric-label">Net Clinical Benefit</div><div class="metric-value" style="color:#FCD34D;">0.169</div><div class="metric-delta">Low confidence</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="table-card">
+          <div class="table-header"><div class="table-title" style="color:#34D399;">Benefits — Amoxicillin</div></div>
+          <div style="padding:12px 14px;">
+            <div class="br-bar"><div class="br-label">Therapeutic effect (0.5)</div><div class="br-track"><div class="br-fill-benefit progress-fill" style="width:8%"></div></div><div class="br-val">0.038</div></div>
+            <div class="br-bar"><div class="br-label">Clinical recovery (0.3)</div><div class="br-track"><div class="br-fill-benefit progress-fill" style="width:100%"></div></div><div class="br-val">0.277</div></div>
+            <div class="br-bar"><div class="br-label">Indication breadth (0.2)</div><div class="br-track"><div class="br-fill-benefit progress-fill" style="width:40%"></div></div><div class="br-val">0.040</div></div>
+            <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.07);display:flex;justify-content:space-between;"><span style="font-size:11px;color:rgba(255,255,255,0.4);">Total Benefit Score</span><span style="font-family:'Space Mono',monospace;color:#34D399;font-weight:700;">0.355</span></div>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-header"><div class="table-title" style="color:#FCA5A5;">Risks — Amoxicillin</div></div>
+          <div style="padding:12px 14px;">
+            <div class="br-bar"><div class="br-label">SAE rate (0.4)</div><div class="br-track"><div class="br-fill-risk progress-fill" style="width:100%"></div></div><div class="br-val">0.369</div></div>
+            <div class="br-bar"><div class="br-label">Fatality rate (0.3)</div><div class="br-track"><div class="br-fill-risk progress-fill" style="width:0%"></div></div><div class="br-val">0.000</div></div>
+            <div class="br-bar"><div class="br-label">Causality strength (0.2)</div><div class="br-track"><div class="br-fill-risk progress-fill" style="width:65%"></div></div><div class="br-val">0.065</div></div>
+            <div class="br-bar"><div class="br-label">AE breadth (0.1)</div><div class="br-track"><div class="br-fill-risk progress-fill" style="width:50%"></div></div><div class="br-val">0.050</div></div>
+            <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.07);display:flex;justify-content:space-between;"><span style="font-size:11px;color:rgba(255,255,255,0.4);">Total Risk Score</span><span style="font-family:'Space Mono',monospace;color:#FCA5A5;font-weight:700;">0.484</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="detail" style="margin-top:12px;">
+        <div class="detail-header">Clinical Assessment — Amoxicillin Benefit-Risk Profile</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.7);line-height:1.7;">"Amoxicillin demonstrates a MARGINALLY FAVORABLE benefit-risk profile (ratio 1.46) with HIGH gap severity. Despite a 92.3% clinical recovery rate, the 92.3% SAE rate driven by anaphylaxis cases (10/13) represents a significant risk burden. Primary indication documentation is sparse (1/13 cases). Recommend: immediate labeling review for anaphylactic reaction (UNLISTED), enhanced prescriber communication, and consideration of allergy screening protocols. Confidence: LOW (13 cases). — SafetySignal AI, Sprint 66, BRAT Framework"</div>
+      </div>
+    </div>
+
+    <!-- LABELING GAPS -->
+    <div class="panel" id="panel-labeling">
+      <div class="page-header">
+        <div><div class="page-title">Labeling Gap Detection</div><div class="page-sub">Automated listedness · 15-day expedited reporting · ICH E2B(R3) · Sprint 62</div></div>
+      </div>
+      <div class="table-card">
+        <div class="table-header"><div class="table-title">Listedness Analysis</div><span class="badge badge-red">1 expedited report required</span></div>
+        <table>
+          <thead><tr><th>Drug</th><th>AE Term</th><th>Listedness</th><th>Report Type</th><th>Action Required</th></tr></thead>
+          <tbody>
+            <tr><td>Amoxicillin</td><td>Anaphylactic reaction</td><td><span class="badge badge-red">UNLISTED</span></td><td><span class="badge badge-red">15-DAY EXPEDITED</span></td><td style="color:#FCA5A5;font-weight:600;">File immediately</td></tr>
+            <tr><td>Relacorilant</td><td>Nausea</td><td><span class="badge badge-green">LISTED</span></td><td><span class="badge badge-blue">Periodic (PSUR)</span></td><td>No action</td></tr>
+            <tr><td>JAKAFI</td><td>Thrombocytopenia</td><td><span class="badge badge-green">LISTED</span></td><td><span class="badge badge-blue">Periodic</span></td><td>Monitor</td></tr>
+            <tr><td>HUMIRA</td><td>Injection site reaction</td><td><span class="badge badge-green">LISTED</span></td><td><span class="badge badge-blue">Periodic</span></td><td>No action</td></tr>
+            <tr><td>XARELTO</td><td>Death (bleeding)</td><td><span class="badge badge-amber">PARTIALLY LISTED</span></td><td><span class="badge badge-amber">7-DAY EXPEDITED</span></td><td style="color:#FCD34D;">Review required</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- LITERATURE SCAN -->
+    <div class="panel" id="panel-literature">
+      <div class="page-header">
+        <div><div class="page-title">Literature Surveillance</div><div class="page-sub">PubMed API · AE signal extraction · Cross-reference case DB · Sprint 61</div></div>
+        <div class="header-actions"><button class="btn btn-primary">Run Portfolio Scan</button></div>
+      </div>
+      <div class="table-card">
+        <div class="table-header"><div class="table-title">Amoxicillin — PubMed Surveillance</div><span class="badge badge-green">12 articles scanned</span></div>
+        <table>
+          <thead><tr><th>PMID</th><th>Title</th><th>AE Signals Extracted</th><th>In Case DB?</th><th>Significance</th></tr></thead>
+          <tbody>
+            <tr><td style="font-family:'Space Mono',monospace;font-size:10px;">38421097</td><td style="font-size:11px;">Anaphylaxis to penicillins: updated epidemiology</td><td>Anaphylaxis, urticaria, angioedema</td><td><span class="badge badge-green">YES ×10</span></td><td><span class="badge badge-red">HIGH</span></td></tr>
+            <tr><td style="font-family:'Space Mono',monospace;font-size:10px;">38304821</td><td style="font-size:11px;">C diff associated with broad-spectrum antibiotics</td><td>C. difficile colitis</td><td><span class="badge badge-red">NOT IN DB</span></td><td><span class="badge badge-amber">MEDIUM</span></td></tr>
+            <tr><td style="font-family:'Space Mono',monospace;font-size:10px;">38198432</td><td style="font-size:11px;">Amoxicillin-induced liver injury: case series</td><td>Hepatotoxicity, elevated ALT</td><td><span class="badge badge-red">NOT IN DB</span></td><td><span class="badge badge-amber">MEDIUM</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TRENDING -->
+    <div class="panel" id="panel-trending">
+      <div class="page-header">
+        <div><div class="page-title">Signal Trending Over Time</div><div class="page-sub">344 drug-AE pairs · WoW tracking · NEW/RISING/DECLINING/STABLE · Sprint 63</div></div>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="metric-label">New Signals</div><div class="metric-value" style="color:#FCA5A5;">296</div><div class="metric-delta delta-down">Mar 16 bulk import</div></div>
+        <div class="metric"><div class="metric-label">Rising</div><div class="metric-value" style="color:#FCD34D;">0</div><div class="metric-delta">No rising signals</div></div>
+        <div class="metric"><div class="metric-label">Declining</div><div class="metric-value" style="color:#34D399;">3</div><div class="metric-delta delta-up">Resolving</div></div>
+        <div class="metric"><div class="metric-label">Drug-AE Pairs</div><div class="metric-value">344</div><div class="metric-delta">Portfolio tracked</div></div>
+      </div>
+      <div class="table-card">
+        <div class="table-header"><div class="table-title">Portfolio Signal Trends — Priority Alerts</div></div>
+        <table>
+          <thead><tr><th>Drug</th><th>AE Term</th><th>Pattern</th><th>Cases</th><th>WoW %</th><th>First Week</th></tr></thead>
+          <tbody>
+            <tr><td><strong>HOLOXAN</strong></td><td>Disease progression</td><td><span class="badge badge-red">NEW SIGNAL</span></td><td>10</td><td>—</td><td>Mar 16</td></tr>
+            <tr><td><strong>LIPITOR</strong></td><td>Type 2 diabetes mellitus</td><td><span class="badge badge-red">NEW SIGNAL</span></td><td>8</td><td>—</td><td>Mar 16</td></tr>
+            <tr><td><strong>JAKAFI</strong></td><td>Nausea</td><td><span class="badge badge-red">NEW SIGNAL</span></td><td>3</td><td>—</td><td>Mar 16</td></tr>
+            <tr><td><strong>Amoxicillin</strong></td><td>Anaphylactic reaction</td><td><span class="badge badge-red">NEW SIGNAL</span></td><td>10</td><td>—</td><td>Mar 16</td></tr>
+            <tr><td><strong>DEPAKOTE</strong></td><td>Tremor</td><td><span class="badge badge-green">DECLINING</span></td><td>2</td><td style="color:#34D399;">↓ -60%</td><td>Feb 16</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function show(page) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + page).classList.add('active');
+  event && event.currentTarget && event.currentTarget.classList.add('active');
+  var items = document.querySelectorAll('.nav-item');
+  items.forEach(function(item) {
+    if (item.getAttribute('onclick') && item.getAttribute('onclick').includes("'" + page + "'")) {
+      item.classList.add('active');
+    }
+  });
+}
+
+function toggleSignal() {
+  var d = document.getElementById('signal-detail');
+  d.style.display = d.style.display === 'none' ? 'block' : 'none';
+}
+
+var caseRunning = false;
+function runCaseDemo() {
+  if (caseRunning) return;
+  caseRunning = true;
+  var container = document.getElementById('steps-container');
+  var demoDiv = document.getElementById('case-demo-steps');
+  demoDiv.style.display = 'block';
+  container.innerHTML = '';
+  var steps = [
+    {text: 'Case intake — FAERS API source detected', time: '0.01s', delay: 300},
+    {text: 'Patient data extracted — 38yr female, 64kg', time: '0.02s', delay: 800},
+    {text: 'Drug identified — JAKAFI 20mg oral · Indication: Myelofibrosis', time: '0.04s', delay: 1400},
+    {text: 'AE extracted — Thrombocytopenia (MedDRA LLT 10043565)', time: '0.08s', delay: 2000},
+    {text: 'SafetySignal-PV-7B v3 causality assessment running...', time: '...', delay: 2600, active: true},
+    {text: 'Naranjo score computed — 6 (Probable)', time: '2.8s', delay: 5000},
+    {text: 'WHO-UMC — Probable · Kramer — Probable', time: '3.1s', delay: 5600},
+    {text: 'Labeling check — LISTED in JAKAFI prescribing information', time: '3.2s', delay: 6200},
+    {text: 'Consensus — PROBABLE · Non-expedited · PSUR reporting', time: '3.3s', delay: 6800},
+    {text: 'Case complete — stored · Signal queue updated', time: '3.4s', delay: 7400},
+  ];
+  steps.forEach(function(step, i) {
+    setTimeout(function() {
+      var div = document.createElement('div');
+      div.className = 'step-row';
+      if (i === steps.length - 1) div.style.borderBottom = 'none';
+      var cls = i < 4 ? 'step-done' : (step.active ? 'step-active processing' : (i > 4 ? 'step-done' : 'step-pending'));
+      div.innerHTML = '<div class="step-num ' + cls + '">' + (cls.includes('done') ? '✓' : i + 1) + '</div><div class="step-text">' + step.text + '</div><div class="step-time">' + step.time + '</div>';
+      container.appendChild(div);
+      if (i === steps.length - 1) { caseRunning = false; }
+    }, step.delay);
+  });
+}
+
+function generateE2B() {
+  var status = document.getElementById('xml-status');
+  status.textContent = 'Generating...';
+  status.className = 'badge badge-amber';
+  setTimeout(function() {
+    status.textContent = '✓ Generated 0.02s';
+    status.className = 'badge badge-green';
+  }, 800);
+}
+</script>
+</body>
+</html>
