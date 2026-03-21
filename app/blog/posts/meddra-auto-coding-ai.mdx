@@ -1,0 +1,51 @@
+---
+title: "MedDRA Auto-Coding with AI: 94% Automation Rate for Adverse Event Terms"
+description: "How SafetySignal AI's 5-strategy NLP cascade achieves 94% MedDRA auto-coding rate for verbatim adverse event terms — reducing manual coding costs by 94%."
+keywords: "MedDRA auto-coding, MedDRA coding software, adverse event coding automation, NLP pharmacovigilance"
+date: "2026-03-21"
+author: "Vyasa Murthy"
+---
+
+# MedDRA Auto-Coding with AI: 94% Automation Rate
+
+MedDRA (Medical Dictionary for Regulatory Activities) coding is one of the most labor-intensive tasks in pharmacovigilance. Every adverse event verbatim term must be mapped to the appropriate LLT, PT, HLT, HLGT, and SOC — manually, by a trained coder.
+
+At 15 minutes per term and $85/hour, that's **$21.25 per case** just for MedDRA coding.
+
+## SafetySignal AI's 5-Strategy NLP Cascade
+
+SafetySignal AI achieves a **94% auto-coding rate** using a patented 5-strategy cascade:
+
+### Strategy 1: Exact Match (Confidence: 1.0)
+Direct lookup against MedDRA v26.0 LLT/PT dictionary. "Anaphylaxis" → LLT 10002199, PT Anaphylactic reaction, SOC Immune system disorders.
+
+### Strategy 2: Normalized Match (Confidence: 0.97)
+Case-insensitive, punctuation-stripped matching. "ANAPHYLAXIS." → same result.
+
+### Strategy 3: Partial Match (Confidence: 0.85)
+Substring and token overlap matching. "mild anaphylaxis reaction" → Anaphylactic reaction.
+
+### Strategy 4: Synonym Expansion (Confidence: 0.80)
+Domain-specific synonym dictionary. "allergic shock" → Anaphylactic reaction via synonym expansion.
+
+### Strategy 5: SafetySignal-PV-7B Semantic Coding (Confidence: 0.72)
+When all other strategies fail, our proprietary 7.6B parameter model performs semantic coding. The model understands pharmacovigilance context — "patient went into shock after penicillin" correctly maps to Anaphylactic reaction.
+
+## Full MedDRA Hierarchy
+
+Every auto-coded term returns the complete 5-level hierarchy:
+- **LLT**: Lowest Level Term (most specific)
+- **PT**: Preferred Term (primary analysis level)
+- **HLT**: High Level Term
+- **HLGT**: High Level Group Term  
+- **SOC**: System Organ Class (broadest)
+
+## Cost Impact
+
+At 5,000 cases/year:
+- Manual MedDRA coding: $106,250/year
+- SafetySignal AI coding: ~$6,000/year (6% manual review)
+- **Annual saving: $100,250**
+
+[Try SafetySignal AI →](https://safetysignal.ai/contact)
+
