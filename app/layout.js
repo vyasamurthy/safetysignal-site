@@ -1,6 +1,7 @@
 import './globals.css'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import { Analytics } from '@vercel/analytics/next'
 
 export const metadata = {
   title: 'SafetySignal AI — AI-Native Pharmacovigilance Platform',
@@ -38,6 +39,7 @@ export default function RootLayout({ children }) {
         <Nav />
         <main>{children}</main>
         <Footer />
+        <Analytics />
       </body>
     </html>
   )
