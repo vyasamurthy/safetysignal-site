@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SafetySignal AI — AI-native pharmacovigilance</title>
+<meta name="description" content="SafetySignal AI automates case intake, MedDRA coding, causality assessment, signal detection and E2B(R3) submission — powered by SafetySignal-PV-7B, a 7.6B-parameter model trained on real adverse event data.">
+<meta property="og:title" content="SafetySignal AI">
+<meta property="og:description" content="AI-native pharmacovigilance. Causality in 3 seconds. E2B(R3) in 20 milliseconds. Every output carries its evidence.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,300..600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#24306C;--navy-mid:#1A2454;--navy-deep:#111838;--navy-ink:#0B1029;
+  --gold:#F09018;--gold-lt:#F7B948;--gold-deep:#A8620A;
+  --paper:#F3F5FA;--paper-2:#E9EDF6;--bone:#F6F7FB;
+  --slate:#5A6488;--slate-lt:#8A93B4;
+  --crit:#C7382B;--crit-lt:#FF7A68;
+  --warn:#C77D0A;--ok:#1F6F5C;--ok-lt:#5BD1AE;
+  --rule:rgba(36,48,108,.18);--rule-soft:rgba(36,48,108,.10);--rule-dk:rgba(246,247,251,.15);
+  --gut:clamp(20px,5vw,72px);--maxw:1300px;--col:min(700px,100%);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--navy);font-family:"IBM Plex Sans",system-ui,sans-serif;
+  font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+h1,h2,h3,.serif{font-family:Newsreader,Georgia,serif;font-weight:400;letter-spacing:-.012em;color:var(--navy)}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+a{color:inherit}
+::selection{background:var(--gold);color:var(--navy-ink)}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 var(--gut)}
+#prog{position:fixed;top:0;left:0;height:2px;width:0;background:linear-gradient(90deg,var(--gold),var(--gold-lt));z-index:100}
+
+/* ---------- nav ---------- */
+.nav{position:fixed;top:0;left:0;right:0;z-index:90;border-bottom:1px solid transparent;transition:background .35s,border-color .35s}
+.nav.solid{background:rgba(243,245,250,.93);backdrop-filter:blur(14px);border-bottom-color:var(--rule)}
+.nav-in{max-width:var(--maxw);margin:0 auto;padding:14px var(--gut);display:flex;align-items:center;gap:28px}
+.brand{display:flex;align-items:center;gap:11px;text-decoration:none}
+.brand .bm{width:30px;height:30px;flex:0 0 auto}
+.brand .bt{line-height:1.12}
+.brand .bt b{display:block;font-size:15.5px;font-weight:700;letter-spacing:-.02em;color:var(--navy)}
+.brand .bt span{display:block;font-family:"IBM Plex Mono";font-size:9.5px;color:var(--slate-lt);letter-spacing:.04em}
+.nav-links{margin-left:auto;display:flex;align-items:center;gap:24px}
+.nav-links a{text-decoration:none;font-size:13.5px;font-weight:500;color:var(--slate);transition:color .2s}
+.nav-links a:hover{color:var(--navy)}
+.nav-cta{border:1px solid var(--navy);padding:8px 16px;color:var(--navy)!important;transition:background .25s,color .25s,border-color .25s}
+.nav-cta:hover{background:var(--gold);border-color:var(--gold);color:var(--navy-ink)!important}
+.burger{display:none;margin-left:auto;border:1px solid var(--rule);background:none;padding:8px 12px;font:inherit;font-size:13px;color:var(--navy);cursor:pointer}
+
+/* ---------- hero ---------- */
+.hero{padding:clamp(108px,14vh,158px) 0 clamp(30px,5vh,58px);position:relative;overflow:hidden}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.04fr) minmax(0,.96fr);gap:clamp(30px,4.6vw,62px);align-items:center;position:relative;z-index:2}
+#burst{position:absolute;top:-16%;left:50%;width:min(1240px,155vw);transform:translateX(-46%);opacity:.6;z-index:1;pointer-events:none}
+#burst line{stroke:var(--gold);stroke-linecap:round;transform-origin:600px 600px;opacity:0}
+.tagpill{display:inline-flex;align-items:center;gap:9px;font-family:"IBM Plex Mono";font-size:11px;color:var(--navy);
+  border:1px solid var(--rule);background:rgba(255,255,255,.7);padding:6px 13px;letter-spacing:.03em}
+.tagpill i{width:6px;height:6px;border-radius:50%;background:var(--ok);font-style:normal;animation:beat 2.2s infinite}
+@keyframes beat{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.8)}}
+h1{font-size:clamp(34px,5.4vw,66px);line-height:1.04;margin:22px 0 0;max-width:15ch;font-weight:300}
+h1 em{font-style:normal;color:var(--gold-deep)}
+.msk{display:block;overflow:hidden}
+.msk>span{display:block;transform:translateY(103%);opacity:0;animation:rise 1s cubic-bezier(.16,1,.3,1) forwards}
+.msk:nth-of-type(2)>span{animation-delay:.1s}.msk:nth-of-type(3)>span{animation-delay:.2s}
+@keyframes rise{to{transform:none;opacity:1}}
+.hero-lede{max-width:53ch;color:var(--slate);font-size:clamp(15.5px,1.45vw,18px);margin:24px 0 0;opacity:0;animation:fade .9s .55s forwards}
+@keyframes fade{to{opacity:1}}
+.hero-cta{display:flex;gap:13px;flex-wrap:wrap;margin:30px 0 0;opacity:0;animation:fade .9s .68s forwards}
+.btn{font-family:"IBM Plex Sans";font-size:14px;font-weight:600;padding:13px 23px;text-decoration:none;display:inline-block;
+  border:1px solid var(--navy);cursor:pointer;transition:background .22s,color .22s,transform .22s,border-color .22s}
+.btn-solid{background:var(--navy);color:var(--bone)}
+.btn-solid:hover{background:var(--gold);border-color:var(--gold);color:var(--navy-ink);transform:translateY(-2px)}
+.btn-line{background:none;color:var(--navy)}
+.btn-line:hover{background:var(--navy);color:var(--bone);transform:translateY(-2px)}
+.btn-gold{border-color:var(--gold);color:var(--navy-ink);background:var(--gold)}
+.btn-gold:hover{background:var(--gold-lt);border-color:var(--gold-lt);transform:translateY(-2px)}
+.btn-dk{border-color:var(--bone);color:var(--bone);background:none}
+.btn-dk:hover{background:var(--bone);color:var(--navy);transform:translateY(-2px)}
+
+/* ---------- triage console (hero visual) ---------- */
+.triage{background:var(--navy-deep);border-top:3px solid var(--gold);opacity:0;animation:fade 1s .72s forwards;
+  box-shadow:0 40px 90px -56px rgba(11,16,41,.8)}
+.tr-hd{display:flex;align-items:center;gap:10px;padding:13px 18px;border-bottom:1px solid var(--rule-dk);
+  font-family:"IBM Plex Mono";font-size:10.5px;color:var(--slate-lt);letter-spacing:.04em}
+.tr-hd .lv{margin-left:auto;color:var(--ok-lt)}
+.tr-body{padding:6px 0;min-height:274px}
+.sig{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;padding:12px 18px;
+  border-bottom:1px solid rgba(246,247,251,.07);animation:slot .55s cubic-bezier(.16,1,.3,1)}
+@keyframes slot{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+.sig:last-child{border-bottom:0}
+.sev{width:3px;height:34px}
+.sev.c{background:var(--crit-lt)}.sev.h{background:var(--gold)}.sev.m{background:#6E7CC4}
+.sig .pair{font-size:13.5px;font-weight:600;color:#fff;letter-spacing:-.01em}
+.sig .meta{font-family:"IBM Plex Mono";font-size:10.5px;color:#8A93B4;margin-top:3px}
+.sig .score{text-align:right;font-family:"IBM Plex Mono"}
+.sig .score b{display:block;font-size:19px;font-weight:500;color:#fff;letter-spacing:-.02em}
+.sig .score span{display:block;font-size:9.5px;letter-spacing:.06em;margin-top:2px}
+.sig.c .score span{color:var(--crit-lt)}.sig.h .score span{color:var(--gold-lt)}.sig.m .score span{color:#9AA3C4}
+.tr-ft{display:flex;flex-wrap:wrap;gap:7px;padding:13px 18px;border-top:1px solid var(--rule-dk)}
+.std{font-family:"IBM Plex Mono";font-size:9.5px;letter-spacing:.04em;color:#A2ABCC;border:1px solid var(--rule-dk);padding:4px 8px}
+
+/* ---------- sections ---------- */
+section{position:relative}
+.pad{padding:clamp(72px,9.5vw,130px) 0}
+.pad-s{padding:clamp(48px,6vw,80px) 0}
+.dark{background:var(--navy);color:var(--bone)}
+.deep{background:var(--navy-deep);color:var(--bone)}
+.dark h2,.dark h3,.dark h4,.dark .lead,.deep h2,.deep h3,.deep h4,.deep .lead{color:var(--bone)}
+.dark .body p,.dark p,.deep .body p,.deep p{color:#B9C1DC}
+.act{display:grid;grid-template-columns:minmax(0,178px) minmax(0,1fr);gap:clamp(20px,4vw,62px);align-items:start}
+.act-tag{font-family:"IBM Plex Mono";font-size:11.5px;color:var(--gold-deep);line-height:1.6;position:sticky;top:90px}
+.dark .act-tag,.deep .act-tag{color:var(--gold-lt)}
+.eyebrow{font-family:"IBM Plex Mono";font-size:11.5px;color:var(--gold-deep);margin:0 0 18px;letter-spacing:.03em}
+.dark .eyebrow,.deep .eyebrow{color:var(--gold-lt)}
+h2{font-size:clamp(27px,3.8vw,48px);line-height:1.09;margin:0;max-width:20ch;font-weight:300}
+h3{font-size:clamp(20px,2.2vw,27px);line-height:1.18;margin:0 0 12px;font-weight:400}
+.lead{font-size:clamp(17.5px,1.8vw,21px);line-height:1.5;max-width:38ch;margin:0 0 28px;font-family:Newsreader;font-weight:400;color:var(--navy)}
+.body{max-width:var(--col)}
+.body p{margin:0 0 19px;color:var(--slate);font-size:16.5px}
+.body p:last-child{margin-bottom:0}
+.body strong{color:var(--navy);font-weight:600}
+.dark .body strong,.deep .body strong{color:#fff}
+blockquote{margin:30px 0;padding:0 0 0 24px;border-left:3px solid var(--gold);font-family:Newsreader;
+  font-size:clamp(18px,2vw,23px);line-height:1.45;color:var(--navy)}
+.dark blockquote,.deep blockquote{color:var(--bone)}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .85s cubic-bezier(.16,1,.3,1),transform .85s cubic-bezier(.16,1,.3,1)}
+.reveal.in{opacity:1;transform:none}
+
+/* strips, grids, tables */
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(186px,1fr));border-top:1px solid var(--rule);margin-top:50px}
+.strip div{padding:24px 22px 0 0;border-right:1px solid var(--rule)}
+.strip div:last-child{border-right:0}
+.strip b{display:block;font-family:"IBM Plex Mono";font-size:clamp(22px,2.9vw,31px);font-weight:500;letter-spacing:-.03em;color:var(--gold-deep)}
+.strip span{display:block;font-size:13px;color:var(--slate);margin-top:9px;max-width:26ch;line-height:1.5}
+.dark .strip,.deep .strip{border-top-color:var(--rule-dk)}
+.dark .strip div,.deep .strip div{border-right-color:var(--rule-dk)}
+.dark .strip b,.deep .strip b{color:var(--gold-lt)}
+.dark .strip span,.deep .strip span{color:#A2ABCC}
+table.tb{width:100%;border-collapse:collapse;margin:28px 0 0;font-size:14.5px}
+table.tb th{text-align:left;font-family:"IBM Plex Mono";font-size:10.5px;font-weight:500;color:var(--gold-deep);
+  padding:0 16px 11px 0;border-bottom:1px solid var(--rule);letter-spacing:.04em}
+table.tb td{padding:13px 16px 13px 0;border-bottom:1px solid var(--rule-soft);color:var(--slate);vertical-align:top}
+table.tb td:first-child{color:var(--navy);font-weight:500;white-space:nowrap}
+.dark table.tb th,.deep table.tb th{color:var(--gold-lt);border-bottom-color:var(--rule-dk)}
+.dark table.tb td,.deep table.tb td{color:#A2ABCC;border-bottom-color:var(--rule-dk)}
+.dark table.tb td:first-child,.deep table.tb td:first-child{color:#fff}
+</style>
+</head>
+<body>
+<div id="prog"></div>
+
+<header class="nav" id="nav">
+  <div class="nav-in">
+    <a class="brand" href="#top" aria-label="SafetySignal AI home">
+      <svg class="bm" viewBox="0 0 40 40" aria-hidden="true">
+        <rect x="1" y="1" width="38" height="38" fill="none" stroke="#24306C" stroke-width="1.4"/>
+        <path d="M6 26 L12 26 L15 13 L20 33 L24 20 L27 26 L34 26" fill="none" stroke="#F09018"
+              stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+      </svg>
+      <span class="bt"><b>SafetySignal AI</b><span>A VENTURE VERTEX PLATFORM</span></span>
+    </a>
+    <button class="burger" id="burger" aria-expanded="false" aria-controls="nl">Menu</button>
+    <nav class="nav-links" id="nl">
+      <a href="#problem">The problem</a>
+      <a href="#capabilities">Capabilities</a>
+      <a href="#pipeline">Live pipeline</a>
+      <a href="#oracle">Oracle</a>
+      <a href="#trust">Trust</a>
+      <a class="nav-cta" href="#contact">Request a demo</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ================= HERO ================= -->
+<section class="hero" id="top">
+  <svg id="burst" viewBox="0 0 1200 1200" aria-hidden="true"></svg>
+  <div class="wrap hero-grid">
+    <div>
+      <span class="tagpill"><i></i> PRODUCTION &middot; 66 SPRINTS &middot; 350+ ENDPOINTS</span>
+      <h1>
+        <span class="msk"><span>The signal is in</span></span>
+        <span class="msk"><span>the narrative.</span></span>
+        <span class="msk"><span><em>Now you have time to read it.</em></span></span>
+      </h1>
+      <p class="hero-lede">SafetySignal AI automates case intake, MedDRA and WHODrug coding, three-algorithm causality assessment, disproportionality signal detection and E2B(R3) submission &mdash; in seconds rather than days. It runs on SafetySignal-PV-7B, a 7.6-billion-parameter model fine-tuned on real adverse event data, and every output it produces carries the evidence behind it.</p>
+      <div class="hero-cta">
+        <a class="btn btn-solid" href="#contact">Request a demo</a>
+        <a class="btn btn-line" href="#pipeline">Run a case through the pipeline</a>
+      </div>
+    </div>
+
+    <aside class="triage" aria-label="Live signal queue">
+      <div class="tr-hd"><span>SIGNAL QUEUE &middot; PORTFOLIO SURVEILLANCE</span><span class="lv" id="lv">STREAMING</span></div>
+      <div class="tr-body" id="queue"></div>
+      <div class="tr-ft">
+        <span class="std">ICH E2B(R3)</span><span class="std">GVP VI / IX</span><span class="std">CIOMS XIV</span>
+        <span class="std">21 CFR PART 11</span><span class="std">FDA FAERS</span><span class="std">EMA EUDRAVIGILANCE</span>
+      </div>
+    </aside>
+  </div>
+</section>
+<!-- ================= BUSINESS PROBLEM ================= -->
+<section class="pad dark" id="problem">
+  <div class="wrap act">
+    <div class="act-tag reveal">THE PROBLEM</div>
+    <div>
+      <h2 class="reveal">Drug safety is the only function measured on volume and judged on what it missed.</h2>
+      <div class="body" style="margin-top:26px">
+        <p class="reveal">A pharmacovigilance team processes what arrives. Spontaneous reports, literature, clinical studies, regulatory feeds &mdash; and every one of them carries a clock. Fifteen days for an expedited report. The team is staffed to the volume, which means it is staffed to <strong>process</strong>, not to <strong>notice</strong>.</p>
+        <p class="reveal">The signal is rarely in the coded fields. It is in the narrative &mdash; the phrasing the reporter used, the sequence of events, the clinical detail a physician would flag and a structured field cannot hold. And it is frequently not in any single case at all. It is in a pattern across cases that no individual reviewer sees, because no individual reviewer reads all of them.</p>
+        <p class="reveal">So the work compounds in the wrong direction. Manual MedDRA coding runs roughly twenty-one dollars a case. Causality assessment waits for a qualified reviewer. Aggregate reporting consumes the same scientists who should be running signal evaluation. And the one outcome that matters &mdash; catching an unlisted event early enough to act &mdash; depends on attention that has already been spent.</p>
+        <p class="reveal">General-purpose assistants make this worse rather than better. In pharmacovigilance a confident wrong answer is the most expensive output available: it consumes the scarce resource, qualified reviewer attention, and returns nothing defensible to an inspector.</p>
+      </div>
+      <div class="strip">
+        <div class="reveal"><b>$21</b><span>Industry cost of coding a single case by hand</span></div>
+        <div class="reveal"><b>15 days</b><span>Expedited reporting clock on an unlisted serious event</span></div>
+        <div class="reveal"><b>$2M+</b><span>Annual run cost of a legacy safety database with no AI causality</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= METRICS BAR ================= -->
+<section class="mbar">
+  <div class="wrap">
+    <div class="mbar-grid">
+      <div class="reveal"><b class="mono" data-run="94" data-suffix="%">0</b><span>MedDRA auto-coding rate<br><i>five-strategy NLP, no reviewer touch</i></span></div>
+      <div class="reveal"><b class="mono">3s</b><span>Causality assessment per case<br><i>Naranjo, WHO-UMC and Kramer in parallel</i></span></div>
+      <div class="reveal"><b class="mono">20ms</b><span>Submission-ready E2B(R3) XML<br><i>FDA and EMA formats, all required fields</i></span></div>
+      <div class="reveal"><b class="mono" data-run="248" data-suffix="%">0</b><span>Modelled return on investment<br><i>3.4-month payback against legacy licence</i></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CORE CAPABILITIES ================= -->
+<section class="pad" id="capabilities">
+  <div class="wrap act" style="margin-bottom:clamp(34px,4.5vw,58px)">
+    <div class="act-tag reveal">CORE CAPABILITIES<br>FOUR PILLARS</div>
+    <div>
+      <p class="lead reveal">Four pillars covering the full safety lifecycle &mdash; intake to submission, and the governance underneath both.</p>
+      <div class="body"><p class="reveal">Each one replaces a manual workflow rather than adding a dashboard on top of it. Every output is traceable to the case data that produced it, the model version that generated it, and the reviewer who accepted it.</p></div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="pillars">
+
+      <article class="pillar reveal">
+        <span class="pnum mono">PILLAR 01</span>
+        <h3>Intelligent case intake &amp; extraction</h3>
+        <p class="psub">Structured and unstructured ingestion, coded and enriched before a human opens it.</p>
+        <p class="pbody">FAERS bulk import, EMA feeds, manual upload and REST API intake in one pipeline. The extraction layer reads unstructured source &mdash; narrative text, scanned medical records, literature abstracts &mdash; and resolves it into a structured ICSR with patient demographics, suspect and concomitant drugs, event terms, dates and outcomes. MedDRA coding runs through five strategies in sequence: exact match, normalised match, partial match, synonym expansion, and PV-7B semantic coding for the residue. WHODrug resolution handles trade names, salts and combination products.</p>
+        <ul class="pout">
+          <li><b>94% auto-coding</b> with no reviewer touch</li>
+          <li><b>Zero re-keying</b> from narrative to structured ICSR</li>
+          <li><b>Completeness scoring</b> at intake, graded A&ndash;D</li>
+        </ul>
+      </article>
+
+      <article class="pillar reveal">
+        <span class="pnum mono">PILLAR 02</span>
+        <h3>Autonomous triage &amp; causality assessment</h3>
+        <p class="psub">Seriousness, expectedness and causality resolved at intake, with the reasoning attached.</p>
+        <p class="pbody">Every case is scored for seriousness against the ICH criteria, assessed for listedness against current product labelling, and routed by priority into the assessment queue. Causality runs three established algorithms in parallel &mdash; Naranjo, WHO-UMC and Kramer &mdash; and reports the consensus with the divergence exposed rather than averaged away. Where the three disagree, that disagreement is the finding, and the case escalates to a reviewer with the conflicting logic laid out.</p>
+        <ul class="pout">
+          <li><b>Three-algorithm consensus</b> in under 3 seconds</li>
+          <li><b>Automated listedness</b> flags unlisted AEs for 15-day expedited reporting</li>
+          <li><b>80% agreement</b> with a frontier general model, and the divergence is where domain training earns its keep</li>
+        </ul>
+      </article>
+
+      <article class="pillar reveal">
+        <span class="pnum mono">PILLAR 03</span>
+        <h3>Proactive signal detection &amp; risk management</h3>
+        <p class="psub">Four disproportionality methods triangulating, plus the narrative signal the maths cannot see.</p>
+        <p class="pbody">PRR, ROR, IC/BCPNN and EBGM/GPS run simultaneously across the drug&ndash;event space, so a signal confirmed by multiple independent methods separates itself from statistical noise. A composite priority score then combines disproportionality strength with causality confidence, clinical severity, case volume and novelty &mdash; producing a ranked queue rather than an alert list. Week-over-week emergence tracking across the portfolio classifies every pair as new, rising, declining or stable, and PubMed surveillance surfaces literature-only signals that have not yet appeared in spontaneous data.</p>
+        <ul class="pout">
+          <li><b>Multi-method confirmation</b> across PRR, ROR, IC and EBGM</li>
+          <li><b>Ranked queue</b>, not an undifferentiated alert backlog</li>
+          <li><b>Literature-only signals</b> caught before they reach FAERS</li>
+        </ul>
+      </article>
+
+      <article class="pillar reveal">
+        <span class="pnum mono">PILLAR 04</span>
+        <h3>Audit-ready compliance &amp; governance</h3>
+        <p class="psub">Human-in-the-loop by construction, with an evidence trail built for inspection.</p>
+        <p class="pbody">No regulatory-consequential output leaves the platform on the model's authority alone. Every AI-generated assessment is a recommendation carrying its supporting evidence, presented to a qualified reviewer who accepts, amends or rejects it &mdash; and that decision, the reviewer identity, the timestamp and the model version are written to an immutable record. Submission artefacts are generated to format: E2B(R3) ICSRs, CIOMS I forms, PSUR and PBRER packages, ICH-compliant narratives, and BRAT benefit-risk assessments aligned to ICH E2C(R2).</p>
+        <ul class="pout">
+          <li><b>21 CFR Part 11</b> electronic records and signatures</li>
+          <li><b>Full audit trail</b> with model version and reviewer decision pinned per case</li>
+          <li><b>Submission-ready</b> in FDA and EMA formats, not export-and-fix</li>
+        </ul>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ================= MODULE GRID ================= -->
+<section class="pad" style="background:var(--paper-2)">
+  <div class="wrap act">
+    <div class="act-tag reveal">THE PLATFORM<br>WHAT SHIPS</div>
+    <div style="width:100%">
+      <h2 class="reveal">Nine production modules, not a roadmap.</h2>
+      <div class="body" style="margin-top:24px"><p class="reveal">Sixty-six production sprints and more than 350 API endpoints. Each module is independently addressable, so a team can adopt causality assessment first and signal prioritisation six months later without a re-platform.</p></div>
+      <div class="mods">
+        <div class="reveal"><h4>AI causality assessment</h4><p>Naranjo, WHO-UMC and Kramer consensus on SafetySignal-PV-7B v3.</p></div>
+        <div class="reveal"><h4>Signal prioritisation scoring</h4><p>Composite of PRR, ROR, IC and EBGM with causality, severity, volume and novelty.</p></div>
+        <div class="reveal"><h4>Benefit-risk assessment</h4><p>BRAT evaluation aligned to ICH E2C(R2), generated from case data in under 50ms.</p></div>
+        <div class="reveal"><h4>Labelling gap detection</h4><p>Automated listedness against current labelling, flagging unlisted AEs for expedited reporting.</p></div>
+        <div class="reveal"><h4>E2B(R3) XML generator</h4><p>Submission-ready ICSRs with every required field, in FDA and EMA formats.</p></div>
+        <div class="reveal"><h4>Literature surveillance</h4><p>PubMed portfolio monitoring, cross-referenced against the case database.</p></div>
+        <div class="reveal"><h4>Signal trending</h4><p>Week-over-week emergence across 344+ drug&ndash;event pairs with change classification.</p></div>
+        <div class="reveal"><h4>ICH narrative generation</h4><p>E2B-compliant case narratives from structured data, with completeness grading.</p></div>
+        <div class="reveal"><h4>Regulatory intelligence</h4><p>Compliance status, deadline alerts, signal queue and risk heatmap from 130+ CIOMS XIV tables.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LIVE PIPELINE ================= -->
+<section class="pad deep" id="pipeline">
+  <div class="wrap act">
+    <div class="act-tag reveal">WORKED EXAMPLE<br>INTAKE TO SUBMISSION</div>
+    <div style="width:100%">
+      <p class="lead reveal">One case, from narrative to submission-ready XML.</p>
+      <div class="body"><p class="reveal">A spontaneous report arrives as free text. Watch it get coded, assessed, scored against the portfolio, checked against labelling, and emitted as E2B(R3) &mdash; with the reviewer gate held open where a human decision is required.</p></div>
+
+      <div class="console reveal">
+        <div class="con-hd"><span>safetysignal &middot; case pipeline</span><span class="id mono" id="caseId">idle</span></div>
+        <div class="con-body mono" id="con"><span class="t">$</span> awaiting case intake <span class="caret"></span></div>
+        <div class="con-ft">
+          <button class="btn btn-gold" id="runBtn">Process an inbound case</button>
+          <span class="note">Illustrative sequence built on real platform behaviour. Not connected to a live tenant.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SIGNAL SCIENCE ================= -->
+<section class="pad">
+  <div class="wrap act">
+    <div class="act-tag reveal">SIGNAL SCIENCE<br>TRIANGULATION</div>
+    <div style="width:100%">
+      <h2 class="reveal">One method finds candidates. Four methods find signals.</h2>
+      <div class="body" style="margin-top:24px">
+        <p class="reveal">Every disproportionality method has a known failure mode. PRR is unstable at low counts. ROR inflates in sparse strata. Bayesian shrinkage in IC and EBGM corrects for that but can suppress a genuine early signal. Running one method and tuning a threshold is how a safety database produces either a backlog or a blind spot.</p>
+        <p class="reveal">SafetySignal runs all four simultaneously and treats agreement as the evidence. A pair confirmed by three or four independent methods is a different object from a pair flagged by one, and the queue is ordered accordingly.</p>
+      </div>
+      <div class="methods">
+        <div class="reveal"><span class="mk mono">PRR</span><h4>Proportional reporting ratio</h4><p>The frequentist baseline. Fast, transparent, and unstable below roughly three cases &mdash; which is exactly where early signals live.</p></div>
+        <div class="reveal"><span class="mk mono">ROR</span><h4>Reporting odds ratio</h4><p>Handles stratification and covariate adjustment better than PRR, at the cost of inflation in sparse cells.</p></div>
+        <div class="reveal"><span class="mk mono">IC</span><h4>Information component, BCPNN</h4><p>Bayesian shrinkage toward the null. Conservative by design, which makes a positive IC meaningful.</p></div>
+        <div class="reveal"><span class="mk mono">EBGM</span><h4>Empirical Bayes geometric mean</h4><p>Gamma-Poisson shrinkage with credible intervals. The method regulators most often recognise in a submission.</p></div>
+      </div>
+      <div class="tri reveal" id="tri">
+        <div class="tri-hd"><span class="mono">PORTFOLIO SURVEILLANCE &middot; METHOD AGREEMENT</span><span class="mono" style="margin-left:auto;color:var(--gold-deep)">344 DRUG&ndash;EVENT PAIRS</span></div>
+        <div class="tri-grid" id="triGrid"></div>
+        <div class="tri-key">
+          <span><i class="k4"></i> Four methods agree &mdash; escalate</span>
+          <span><i class="k3"></i> Three agree &mdash; evaluate</span>
+          <span><i class="k2"></i> Two agree &mdash; monitor</span>
+          <span><i class="k1"></i> Single method &mdash; noise until proven otherwise</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ================= ORACLE ================= -->
+<section class="pad dark" id="oracle">
+  <div class="wrap act">
+    <div class="act-tag reveal">ECOSYSTEM<br>ORACLE ARGUS</div>
+    <div style="width:100%">
+      <h2 class="reveal">It augments the system of record. It does not ask you to replace it.</h2>
+      <div class="body" style="margin-top:24px">
+        <p class="reveal">Nobody rips out a validated safety database. Argus is qualified, documented, inspected, and wired into every downstream regulatory process the company owns. Replacing it is not a migration project &mdash; it is a revalidation programme with regulatory exposure attached, run by a team that is already oversubscribed.</p>
+        <p class="reveal">So SafetySignal connects into the Oracle pharmacovigilance ecosystem and enriches what is already there. Argus holds the record. SafetySignal supplies the intelligence layer above it.</p>
+      </div>
+      <table class="tb reveal">
+        <tr><th>Connection</th><th>Mechanism</th><th>What it carries</th><th>Status</th></tr>
+        <tr><td>Argus Safety</td><td>REST API and E2B messaging</td><td>Bidirectional case exchange. Argus cases enriched with generated causality assessments and ICH narratives.</td><td>LIVE</td></tr>
+        <tr><td>Argus Mart</td><td>Direct warehouse read</td><td>Aggregate safety data and case listings into the regulatory intelligence dashboard.</td><td>LIVE</td></tr>
+        <tr><td>Empirica Topics</td><td>SOAP web service</td><td>Signal detection results imported and augmented with composite priority scoring and benefit-risk assessment.</td><td>LIVE</td></tr>
+        <tr><td>Clinical One</td><td>SAE reconciliation</td><td>Serious adverse event exchange between clinical and safety.</td><td>READY</td></tr>
+        <tr><td>OCI</td><td>Terraform and Kubernetes</td><td>Validated manifests for GxP-compliant deployment alongside Oracle Cloud Infrastructure.</td><td>READY</td></tr>
+      </table>
+      <blockquote class="reveal" style="margin-top:38px">The addressable population is not sponsors willing to migrate. It is everyone who already owns the incumbent.</blockquote>
+    </div>
+  </div>
+</section>
+
+<!-- ================= TRUST / ARCHITECTURE ================= -->
+<section class="pad" id="trust" style="background:var(--paper-2)">
+  <div class="wrap act">
+    <div class="act-tag reveal">ARCHITECTURE<br>&amp; TRUST</div>
+    <div style="width:100%">
+      <h2 class="reveal">The model recommends. A qualified person decides. The record proves it.</h2>
+      <div class="body" style="margin-top:24px">
+        <p class="reveal">Human-in-the-loop is not a setting in SafetySignal. It is the shape of the system. No regulatory-consequential output &mdash; a causality determination, a listedness call, an expedited-reporting decision, a submission artefact &mdash; leaves the platform on the model's authority alone.</p>
+        <p class="reveal">Every AI-generated assessment arrives as a recommendation carrying the evidence that produced it: the source text it read, the algorithm outputs it combined, the disproportionality statistics it weighed, and the confidence it assigns. A qualified reviewer accepts, amends or rejects. That decision, the reviewer identity, the timestamp, the model version and the configuration in force are written to an immutable record at the moment of the decision.</p>
+        <p class="reveal">Which means the platform answers the question an inspector actually asks. Not <em>does your AI work</em> &mdash; but <em>who decided, on what basis, and can you show me</em>.</p>
+      </div>
+      <div class="gridcards">
+        <article class="reveal"><span class="gk mono">REGULATORY</span><h4>Standards built to, not mapped to</h4><p>ICH E2B(R3), ICH E2C(R2), GVP Module VI and IX, CIOMS XIV, FDA FAERS and EMA EudraVigilance submission formats. Getting the science right and the format wrong is still a finding.</p></article>
+        <article class="reveal"><span class="gk mono">VALIDATION</span><h4>GxP and 21 CFR Part 11</h4><p>Electronic records and signatures, computer system validation artefacts, IQ/OQ/PQ documentation, and change control that survives an inspection of the platform itself.</p></article>
+        <article class="reveal"><span class="gk mono">SECURITY</span><h4>HIPAA-ready, SOC 2 aligned</h4><p>Encryption in transit and at rest, role-based access control, tenant isolation enforced architecturally, and PHI handling designed for named-patient safety data.</p></article>
+        <article class="reveal"><span class="gk mono">DEPLOYMENT</span><h4>Your tenancy or ours</h4><p>Validated Terraform and Kubernetes manifests for deployment inside your own cloud tenancy, including OCI, so regulated data never has to transit infrastructure you do not control.</p></article>
+      </div>
+      <div class="hitl reveal">
+        <div class="hitl-t mono">HUMAN-IN-THE-LOOP GATE</div>
+        <div class="hitl-flow">
+          <div><b>01</b><span>Model produces assessment with supporting evidence</span></div>
+          <div><b>02</b><span>Confidence and method divergence surfaced, not hidden</span></div>
+          <div><b>03</b><span>Qualified reviewer accepts, amends or rejects</span></div>
+          <div><b>04</b><span>Decision, identity, timestamp and model version written immutably</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ROI ================= -->
+<section class="pad deep">
+  <div class="wrap act">
+    <div class="act-tag reveal">THE CASE</div>
+    <div style="width:100%">
+      <h2 class="reveal">The comparison is not against another vendor. It is against the status quo.</h2>
+      <div class="body" style="margin-top:24px"><p class="reveal">A legacy safety database runs past two million dollars a year and contains no AI causality assessment, no composite signal prioritisation, and no benefit-risk engine. The question a Head of Safety is answering is not which platform is better. It is what the current arrangement costs in scientist hours that should be spent on evaluation.</p></div>
+      <div class="strip">
+        <div class="reveal"><b>94%</b><span>Of MedDRA coding handled without reviewer touch</span></div>
+        <div class="reveal"><b>3.4 mo</b><span>Modelled payback period against legacy licence cost</span></div>
+        <div class="reveal"><b>248%</b><span>Modelled return on investment, first year</span></div>
+        <div class="reveal"><b>3,000+</b><span>Cases processed in production to date</span></div>
+      </div>
+      <p class="reveal" style="margin-top:30px;font-family:'IBM Plex Mono';font-size:11px;color:#79839F;max-width:70ch;line-height:1.6">Return figures are modelled on published legacy licence costs and observed per-case handling time. We will rebuild the model on your case volume, portfolio size and current cost base before any commercial conversation.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CTA ================= -->
+<section class="pad dark cta" id="contact">
+  <div class="wrap">
+    <h2 class="reveal">Show us a month of cases you have already closed.</h2>
+    <p class="lead reveal" style="color:#B9C1DC;margin-top:22px;max-width:52ch">The useful demonstration is not on our data. It is on yours, retrospectively, where you already know the answer &mdash; and you can judge exactly what the platform would have surfaced, and when.</p>
+    <div class="cta-row reveal">
+      <a class="btn btn-gold" href="mailto:vyasa.murthy@venture-vertex.com?subject=SafetySignal%20AI%20%E2%80%94%20demo%20request">Request a demo</a>
+      <a class="btn btn-dk" href="mailto:vyasa.murthy@venture-vertex.com?subject=SafetySignal%20AI%20%E2%80%94%20safety%20audit">Book a safety audit</a>
+    </div>
+    <p class="reveal mono" style="margin-top:26px;font-size:13px;color:#8A93B4">Forty minutes. Your case mix, your portfolio, your current cost base.</p>
+  </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="wrap">
+    <div class="foot-top">
+      <div>
+        <div class="fbrand">
+          <svg class="bm" viewBox="0 0 40 40" aria-hidden="true" style="width:30px;height:30px">
+            <rect x="1" y="1" width="38" height="38" fill="none" stroke="#8A93B4" stroke-width="1.4"/>
+            <path d="M6 26 L12 26 L15 13 L20 33 L24 20 L27 26 L34 26" fill="none" stroke="#F7B948"
+                  stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+          </svg>
+          <b>SafetySignal AI</b>
+        </div>
+        <p>AI-native pharmacovigilance. Case intake to regulatory submission, with the evidence attached.</p>
+        <img class="vvlogo" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAABPCAYAAABRavg1AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA/hpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTQ4IDc5LjE2NDAzNiwgMjAxOS8wOC8xMy0wMTowNjo1NyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ1dWlkOjVEMjA4OTI0OTNCRkRCMTE5MTRBODU5MEQzMTUwOEM4IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOkQ5NjE1MDVEMUU4MDExRjBBMjg1OTMwRUI1QkMwMDQyIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOkQ5NjE1MDVDMUU4MDExRjBBMjg1OTMwRUI1QkMwMDQyIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIElsbHVzdHJhdG9yIDI0LjEgKFdpbmRvd3MpIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InV1aWQ6OGY4MTQ4OGUtYWU2Zi00ZWUzLWJiNDItZjNlNTI5MWE1MDAyIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjEwYjli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" alt="Venture Vertex">
+        <p class="vvline">A Venture Vertex LLC platform &middot; Frisco, Texas</p>
+      </div>
+      <div>
+        <h5>PLATFORM</h5>
+        <a href="#capabilities">Capabilities</a>
+        <a href="#pipeline">Case pipeline</a>
+        <a href="#oracle">Oracle integration</a>
+        <a href="#trust">Architecture &amp; trust</a>
+      </div>
+      <div>
+        <h5>REGULATORY</h5>
+        <a href="#trust">ICH E2B(R3)</a>
+        <a href="#trust">ICH E2C(R2) &middot; BRAT</a>
+        <a href="#trust">GVP Module VI / IX</a>
+        <a href="#trust">CIOMS XIV</a>
+        <a href="#trust">21 CFR Part 11</a>
+      </div>
+      <div>
+        <h5>COMPANY</h5>
+        <a href="https://www.safetysignal.ai/blog" target="_blank" rel="noopener">Insights</a>
+        <a href="https://www.safetysignal.ai/careers" target="_blank" rel="noopener">Careers</a>
+        <a href="#contact">Request a demo</a>
+        <a href="https://venture-vertex.com" target="_blank" rel="noopener">Venture Vertex</a>
+      </div>
+    </div>
+    <div class="foot-bot">
+      <span>&copy; 2026 Venture Vertex LLC &middot; SafetySignal AI</span>
+      <span class="r">
+        <span>HIPAA READY</span><span>GxP ALIGNED</span><span>21 CFR PART 11</span>
+        <a href="mailto:vyasa.murthy@venture-vertex.com">vyasa.murthy@venture-vertex.com</a>
+      </span>
+    </div>
+  </div>
+</footer>
+
+<style>
+/* ---------- metrics bar ---------- */
+.mbar{background:var(--navy);color:var(--bone);padding:clamp(34px,4.4vw,54px) 0}
+.mbar-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:clamp(20px,3vw,42px)}
+.mbar-grid div{border-top:1px solid var(--rule-dk);padding-top:20px}
+.mbar-grid b{display:block;font-size:clamp(32px,4.2vw,50px);font-weight:500;letter-spacing:-.035em;color:var(--gold-lt);line-height:1}
+.mbar-grid span{display:block;margin-top:12px;font-size:13.5px;color:#B9C1DC;line-height:1.45}
+.mbar-grid i{font-style:normal;color:#79839F;font-size:12px}
+
+/* ---------- pillars ---------- */
+.pillars{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule)}
+.pillar{background:var(--paper);padding:34px 32px 36px;position:relative}
+.pillar::before{content:"";position:absolute;left:0;top:0;width:46px;height:3px;background:var(--gold)}
+.pnum{display:block;font-size:10.5px;letter-spacing:.06em;color:var(--gold-deep);margin-bottom:16px}
+.pillar h3{margin:0 0 8px;font-size:clamp(21px,2.2vw,27px)}
+.psub{margin:0 0 18px;font-size:14px;color:var(--slate-lt);line-height:1.45}
+.pbody{margin:0 0 20px;font-size:15px;color:var(--slate);line-height:1.6}
+.pout{list-style:none;margin:0;padding:0;border-top:1px solid var(--rule-soft)}
+.pout li{position:relative;padding:11px 0 11px 20px;font-size:14px;color:var(--slate);border-bottom:1px solid var(--rule-soft);line-height:1.45}
+.pout li:last-child{border-bottom:0}
+.pout li::before{content:"";position:absolute;left:0;top:19px;width:9px;height:2px;background:var(--gold)}
+.pout b{color:var(--navy);font-weight:600}
+
+/* ---------- module grid ---------- */
+.mods{display:grid;grid-template-columns:repeat(auto-fit,minmax(248px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);margin-top:40px}
+.mods>div{background:var(--paper-2);padding:24px 22px 26px}
+.mods h4{font-size:15.5px;font-weight:600;margin:0 0 8px;color:var(--navy);letter-spacing:-.01em}
+.mods p{margin:0;font-size:13.5px;color:var(--slate);line-height:1.5}
+
+/* ---------- console ---------- */
+.console{border:1px solid var(--rule-dk);background:var(--navy-ink);margin-top:34px;border-top:3px solid var(--gold)}
+.con-hd{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--rule-dk);
+  font-family:"IBM Plex Mono";font-size:10.5px;color:var(--slate-lt);letter-spacing:.04em}
+.con-hd .id{margin-left:auto;color:var(--gold-lt)}
+.con-body{font-family:"IBM Plex Mono";font-size:12.5px;line-height:1.9;padding:16px;min-height:330px;
+  color:#BFC7E2;white-space:pre-wrap;word-break:break-word}
+.con-body .t{color:#69739A}.con-body .g{color:var(--ok-lt)}.con-body .r{color:var(--crit-lt)}
+.con-body .w{color:var(--gold-lt)}.con-body .b{color:#fff}
+.caret{display:inline-block;width:7px;height:14px;background:var(--gold);vertical-align:-2px;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+.con-ft{display:flex;gap:16px;align-items:center;flex-wrap:wrap;padding:14px 16px;border-top:1px solid var(--rule-dk)}
+.con-ft .note{font-family:"IBM Plex Mono";font-size:10px;color:#79839F;margin-left:auto}
+
+/* ---------- methods + triangulation ---------- */
+.methods{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;background:var(--rule);
+  border:1px solid var(--rule);margin-top:42px}
+.methods>div{background:var(--paper);padding:24px 22px 26px}
+.mk{display:block;font-size:12px;font-weight:500;letter-spacing:.08em;color:var(--gold-deep);margin-bottom:12px}
+.methods h4{font-size:15px;font-weight:600;margin:0 0 8px;color:var(--navy)}
+.methods p{margin:0;font-size:13.5px;color:var(--slate);line-height:1.5}
+.tri{margin-top:42px;border:1px solid var(--rule);background:var(--navy-deep);padding:22px}
+.tri-hd{display:flex;align-items:baseline;gap:12px;font-size:10.5px;letter-spacing:.05em;color:var(--slate-lt);
+  padding-bottom:16px;border-bottom:1px solid var(--rule-dk);flex-wrap:wrap}
+.tri-hd .mono:last-child{color:var(--gold-lt)!important}
+.tri-grid{display:grid;grid-template-columns:repeat(43,1fr);gap:3px;margin:18px 0}
+.tri-grid i{display:block;width:100%;padding-bottom:100%;background:rgba(160,172,225,.10);transition:background .5s,transform .5s}
+.tri-grid i.k1{background:rgba(160,172,225,.22)}
+.tri-grid i.k2{background:#4A5AA8}
+.tri-grid i.k3{background:var(--gold)}
+.tri-grid i.k4{background:var(--crit-lt);transform:scale(1.18)}
+.tri-key{display:flex;flex-wrap:wrap;gap:20px;padding-top:14px;border-top:1px solid var(--rule-dk)}
+.tri-key span{display:flex;align-items:center;gap:8px;font-family:"IBM Plex Mono";font-size:10.5px;color:#A2ABCC}
+.tri-key i{width:9px;height:9px;display:block}
+.tri-key i.k1{background:rgba(160,172,225,.22)}.tri-key i.k2{background:#4A5AA8}
+.tri-key i.k3{background:var(--gold)}.tri-key i.k4{background:var(--crit-lt)}
+
+/* ---------- trust ---------- */
+.gridcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(248px,1fr));gap:1px;background:var(--rule);
+  border:1px solid var(--rule);margin-top:44px}
+.gridcards article{background:var(--paper-2);padding:26px 24px 28px}
+.gk{display:block;font-size:10.5px;letter-spacing:.06em;color:var(--gold-deep);margin-bottom:14px}
+.gridcards h4{font-size:15.5px;font-weight:600;margin:0 0 9px;color:var(--navy)}
+.gridcards p{margin:0;font-size:13.5px;color:var(--slate);line-height:1.5}
+.hitl{margin-top:42px;border:1px solid var(--rule);border-top:3px solid var(--gold);background:var(--paper);padding:26px 24px}
+.hitl-t{font-size:10.5px;letter-spacing:.06em;color:var(--gold-deep);margin-bottom:20px}
+.hitl-flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:22px}
+.hitl-flow>div{position:relative;padding-top:16px;border-top:1px solid var(--rule)}
+.hitl-flow b{display:block;font-family:"IBM Plex Mono";font-size:12px;color:var(--gold-deep);margin-bottom:8px}
+.hitl-flow span{display:block;font-size:14px;color:var(--navy);line-height:1.45}
+
+/* ---------- cta + footer ---------- */
+.cta h2{max-width:16ch;font-size:clamp(30px,5vw,58px)}
+.cta-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:32px}
+footer{background:var(--navy-deep);color:var(--slate-lt);padding:clamp(48px,6vw,72px) 0 42px;font-size:13.5px}
+.foot-top{display:grid;grid-template-columns:minmax(0,1.5fr) repeat(3,minmax(0,1fr));gap:34px;
+  padding-bottom:36px;border-bottom:1px solid var(--rule-dk)}
+.fbrand{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.fbrand b{font-size:15.5px;font-weight:700;color:var(--bone);letter-spacing:-.02em}
+.foot-top p{margin:0;color:#8A93B4;font-size:13.5px;max-width:32ch;line-height:1.6}
+.vvlogo{height:22px;margin-top:24px;filter:brightness(0) invert(1);opacity:.75;display:block}
+.vvline{margin-top:8px!important;font-size:12px!important;color:#69739A!important}
+.foot-top h5{font-family:"IBM Plex Mono";font-size:10.5px;font-weight:500;color:var(--gold-lt);margin:0 0 13px;letter-spacing:.05em}
+.foot-top a{display:block;text-decoration:none;color:#B9C1DC;padding:5px 0;font-size:13.5px}
+.foot-top a:hover{color:#fff}
+.foot-bot{display:flex;gap:22px;flex-wrap:wrap;align-items:center;padding-top:24px;color:#69739A;
+  font-family:"IBM Plex Mono";font-size:10.5px;letter-spacing:.04em}
+.foot-bot .r{margin-left:auto;display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+.foot-bot a{text-decoration:none;text-transform:none;letter-spacing:0;font-family:"IBM Plex Sans";font-size:12.5px}
+.foot-bot a:hover{color:#fff}
+
+/* ---------- responsive ---------- */
+@media(max-width:1000px){
+  .hero-grid{grid-template-columns:1fr;gap:38px}
+  .act{grid-template-columns:1fr;gap:16px}
+  .act-tag{position:static}
+  .strip div{border-right:0;border-bottom:1px solid var(--rule);padding-right:0;padding-bottom:22px}
+  .dark .strip div,.deep .strip div{border-bottom-color:var(--rule-dk)}
+  .nav-links{display:none}
+  .nav-links.open{display:flex;flex-direction:column;align-items:flex-start;gap:0;position:absolute;top:100%;
+    left:0;right:0;background:var(--paper);border-bottom:1px solid var(--rule);padding:6px var(--gut) 18px}
+  .nav-links.open a{padding:12px 0;font-size:16px;width:100%}
+  .burger{display:block}
+  #burst{opacity:.4;top:-6%}
+  .foot-top{grid-template-columns:1fr 1fr}
+  .tri-grid{grid-template-columns:repeat(24,1fr)}
+}
+@media(max-width:620px){
+  .foot-top{grid-template-columns:1fr}
+  .tri-grid{grid-template-columns:repeat(16,1fr)}
+  .con-body{font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important;animation-iteration-count:1!important}
+  .reveal{opacity:1;transform:none}
+  .msk>span{transform:none;opacity:1}
+  .hero-lede,.hero-cta,.triage{opacity:1}
+  #burst line{opacity:.5}
+}
+</style>
+
+<script>
+(function(){"use strict";
+var reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+var nav=document.getElementById("nav"),prog=document.getElementById("prog"),
+    burger=document.getElementById("burger"),nl=document.getElementById("nl");
+
+function sc(){nav.classList.toggle("solid",scrollY>20);
+  var h=document.documentElement.scrollHeight-innerHeight;
+  prog.style.width=(h>0?(scrollY/h)*100:0)+"%";}
+sc();addEventListener("scroll",sc,{passive:true});addEventListener("resize",sc);
+burger.addEventListener("click",function(){var o=nl.classList.toggle("open");
+  burger.textContent=o?"Close":"Menu";burger.setAttribute("aria-expanded",o?"true":"false");});
+nl.addEventListener("click",function(e){if(e.target.tagName==="A"&&nl.classList.contains("open")){
+  nl.classList.remove("open");burger.textContent="Menu";}});
+
+/* reveal */
+var io=new IntersectionObserver(function(es){es.forEach(function(e,i){if(e.isIntersecting){
+  setTimeout(function(){e.target.classList.add("in");},Math.min(i*55,200));io.unobserve(e.target);}});},
+  {rootMargin:"0px 0px -10% 0px",threshold:.1});
+document.querySelectorAll(".reveal").forEach(function(el){io.observe(el);});
+
+/* sunburst */
+(function(){
+  var svg=document.getElementById("burst");if(!svg)return;
+  var n=104,cx=600,cy=600,html="";
+  for(var i=0;i<n;i++){var a=(-Math.PI)+(Math.PI)*(i/(n-1));
+    var r0=250,r1=250+(300+Math.sin(i*0.9)*46+(i%3===0?40:0));
+    var w=(i%4===0)?4.2:(i%2===0?2.6:1.5);
+    html+='<line x1="'+(cx+Math.cos(a)*r0).toFixed(1)+'" y1="'+(cy+Math.sin(a)*r0).toFixed(1)+
+          '" x2="'+(cx+Math.cos(a)*r1).toFixed(1)+'" y2="'+(cy+Math.sin(a)*r1).toFixed(1)+
+          '" stroke-width="'+w+'"/>';}
+  svg.innerHTML=html;
+  var lines=svg.querySelectorAll("line");
+  if(reduce){lines.forEach(function(l){l.style.opacity=".5";});return;}
+  lines.forEach(function(l,i){var mid=Math.abs(i-(n-1)/2)/((n-1)/2);
+    l.style.transform="scale(.55)";
+    l.style.transition="opacity 1.1s cubic-bezier(.16,1,.3,1), transform 1.3s cubic-bezier(.16,1,.3,1)";
+    setTimeout(function(){l.style.opacity=(0.92-mid*0.5).toFixed(2);l.style.transform="scale(1)";},240+i*13);});
+  addEventListener("scroll",function(){var y=Math.min(1,scrollY/900);
+    svg.style.transform="translateX(-46%) translateY("+(y*-90)+"px)";
+    svg.style.opacity=(0.6-y*0.52).toFixed(2);},{passive:true});
+})();
+
+/* hero signal queue */
+(function(){
+  var box=document.getElementById("queue"),lv=document.getElementById("lv");if(!box)return;
+  var POOL=[
+    ["Amoxicillin","Anaphylactic reaction","c",92,"10 cases &middot; unlisted &middot; 15-day expedited"],
+    ["Rivaroxaban","Gastrointestinal haemorrhage","c",88,"7 cases &middot; fatal outcome &middot; PRR 9.4"],
+    ["Ruxolitinib","Thrombocytopenia","h",68,"PRR 16.1 &middot; 3 of 4 methods detecting"],
+    ["Atorvastatin","Rhabdomyolysis","h",64,"EBGM 4.8 &middot; rising week over week"],
+    ["Metformin","Lactic acidosis","m",46,"IC 1.9 &middot; listed &middot; monitor"],
+    ["Sertraline","Serotonin syndrome","h",71,"literature-only &middot; not yet in FAERS"],
+    ["Infliximab","Hepatosplenic T-cell lymphoma","c",90,"2 cases &middot; unlisted &middot; escalate"],
+    ["Lisinopril","Angioedema","m",41,"ROR 2.3 &middot; stable &middot; labelled"],
+    ["Pembrolizumab","Myocarditis","h",74,"4 methods agree &middot; evaluate"],
+    ["Warfarin","Intracranial haemorrhage","m",52,"PRR 3.1 &middot; declining"]
+  ];
+  var TIER={c:"CRITICAL",h:"HIGH",m:"MEDIUM"};
+  function add(){
+    var s=POOL[(Math.random()*POOL.length)|0];
+    var el=document.createElement("div");
+    el.className="sig "+s[2];
+    el.innerHTML='<span class="sev '+s[2]+'"></span>'+
+      '<span><span class="pair">'+s[0]+' &rarr; '+s[1]+'</span><span class="meta">'+s[4]+'</span></span>'+
+      '<span class="score"><b>'+s[3]+'</b><span>'+TIER[s[2]]+'</span></span>';
+    box.insertBefore(el,box.firstChild);
+    while(box.children.length>6) box.removeChild(box.lastChild);
+  }
+  for(var i=0;i<6;i++) add();
+  if(!reduce){
+    setInterval(add, 2600+Math.random()*1400);
+    var n=0; setInterval(function(){n++;lv.style.opacity=n%2?"1":".4";},900);
+  }
+})();
+
+/* counters */
+document.querySelectorAll("[data-run]").forEach(function(el){
+  var end=parseFloat(el.dataset.run),suf=el.dataset.suffix||"";
+  var obs=new IntersectionObserver(function(es){es.forEach(function(e){
+    if(!e.isIntersecting)return;var t0=null;
+    function step(ts){if(!t0)t0=ts;var p=Math.min(1,(ts-t0)/1400),k=1-Math.pow(1-p,3);
+      el.textContent=Math.round(end*k).toLocaleString("en-US")+suf;if(p<1)requestAnimationFrame(step);}
+    requestAnimationFrame(step);obs.unobserve(el);});},{threshold:.5});
+  obs.observe(el);
+});
+
+/* triangulation grid */
+(function(){
+  var g=document.getElementById("triGrid");if(!g)return;
+  var N=344,html="";
+  for(var i=0;i<N;i++) html+='<i></i>';
+  g.innerHTML=html;
+  var cells=g.querySelectorAll("i");
+  function paint(){
+    cells.forEach(function(c,i){
+      var r=Math.random();
+      var cls = r<0.008 ? "k4" : r<0.045 ? "k3" : r<0.16 ? "k2" : r<0.42 ? "k1" : "";
+      setTimeout(function(){c.className=cls;}, reduce?0:(i%43)*9+Math.floor(i/43)*40);
+    });
+  }
+  var obs=new IntersectionObserver(function(es){es.forEach(function(e){
+    if(!e.isIntersecting)return;paint();
+    if(!reduce) setInterval(paint,7000);
+    obs.unobserve(e.target);});},{threshold:.25});
+  obs.observe(g);
+})();
+
+/* case pipeline console */
+(function(){
+  var con=document.getElementById("con"),btn=document.getElementById("runBtn"),cid=document.getElementById("caseId");
+  if(!con||!btn)return;
+  var busy=false,timers=[];
+  function hex(n){var s="",c="0123456789abcdef";for(var i=0;i<n;i++)s+=c[(Math.random()*16)|0];return s;}
+  var CASES=[
+    {src:"FAERS bulk",age:"64F",drug:"Amoxicillin 500mg TID",sus:"Amoxicillin",
+     nar:"Pt developed facial swelling, urticaria and dyspnoea approx 40 min after second dose. Epinephrine administered in ED. Symptoms resolved. Drug withdrawn, not rechallenged.",
+     pt:"Anaphylactic reaction",soc:"Immune system disorders",listed:false,naranjo:9,who:"Certain",kramer:"Probable",
+     prr:"9.4",ror:"9.9",ic:"3.1",ebgm:"7.2",ser:"Life-threatening"},
+    {src:"Literature / PubMed",age:"71M",drug:"Rivaroxaban 20mg OD",sus:"Rivaroxaban",
+     nar:"Pt presented with melaena and haemoglobin drop over 48h. Concomitant NSAID use documented. Anticoagulant held. Outcome fatal on day 4.",
+     pt:"Gastrointestinal haemorrhage",soc:"Gastrointestinal disorders",listed:true,naranjo:6,who:"Probable",kramer:"Probable",
+     prr:"6.2",ror:"6.6",ic:"2.4",ebgm:"5.1",ser:"Fatal"},
+    {src:"Spontaneous / REST",age:"58F",drug:"Ruxolitinib 20mg BID",sus:"Ruxolitinib",
+     nar:"Platelet count fell from 210 to 38 over three weeks of therapy. No bleeding. Dose reduced, counts recovering. Concomitant: none relevant.",
+     pt:"Thrombocytopenia",soc:"Blood and lymphatic system disorders",listed:true,naranjo:7,who:"Probable",kramer:"Possible",
+     prr:"16.1",ror:"17.4",ic:"3.6",ebgm:"11.8",ser:"Medically significant"}
+  ];
+  function line(a,b){return [a,b];}
+  btn.addEventListener("click",function(){
+    if(busy)return;busy=true;btn.textContent="Processing\u2026";con.innerHTML="";
+    timers.forEach(clearTimeout);timers=[];
+    var c=CASES[(Math.random()*CASES.length)|0];
+    var id="SS-"+(new Date().getFullYear())+"-"+hex(6).toUpperCase();
+    cid.textContent=id;
+    var consensus = (c.naranjo>=9?"Definite":c.naranjo>=5?"Probable":"Possible");
+    var agree = c.who===c.kramer ? 3 : 2;
+    var L=[];
+    L.push(line('<span class="t">t+000ms</span>  intake  <span class="b">'+c.src+'</span> \u00b7 case <span class="b">'+id+'</span>',20));
+    L.push(line('<span class="t">t+004ms</span>  patient '+c.age+' \u00b7 suspect drug '+c.drug,300));
+    L.push(line('<span class="t">        </span>  <span class="t">narrative: '+c.nar+'</span>',420));
+    L.push(line('<span class="t">t+061ms</span>  extraction \u00b7 structured ICSR built from free text',300));
+    L.push(line('<span class="t">t+112ms</span>  MedDRA coding \u00b7 five-strategy NLP',260));
+    L.push(line('<span class="t">        </span>  PT   <span class="b">'+c.pt+'</span>',180));
+    L.push(line('<span class="t">        </span>  SOC  '+c.soc+'  \u00b7  <span class="g">exact match, no reviewer touch</span>',220));
+    L.push(line('<span class="t">t+140ms</span>  WHODrug \u00b7 '+c.sus+' resolved to preferred base',240));
+    L.push(line('<span class="t">t+210ms</span>  seriousness \u00b7 <span class="w">'+c.ser+'</span> per ICH criteria',300));
+    L.push(line('<span class="t">t+880ms</span>  causality \u00b7 SafetySignal-PV-7B v3 \u00b7 three algorithms in parallel',340));
+    L.push(line('<span class="t">        </span>  Naranjo    '+c.naranjo+'/13   <span class="g">'+(c.naranjo>=9?"Definite":c.naranjo>=5?"Probable":"Possible")+'</span>',200));
+    L.push(line('<span class="t">        </span>  WHO-UMC    '+c.who,200));
+    L.push(line('<span class="t">        </span>  Kramer     '+c.kramer,200));
+    L.push(line('<span class="t">t+2.9s </span>  consensus <span class="b">'+consensus+'</span> \u00b7 '+agree+' of 3 algorithms concordant',320));
+    L.push(line('<span class="t">t+3.1s </span>  disproportionality \u00b7 four methods against 344 pairs',300));
+    L.push(line('<span class="t">        </span>  PRR '+c.prr+'   ROR '+c.ror+'   IC '+c.ic+'   EBGM '+c.ebgm+'  <span class="w">4 of 4 detecting</span>',280));
+    if(c.listed){
+      L.push(line('<span class="t">t+3.2s </span>  listedness \u00b7 <span class="g">event LISTED in current labelling</span>',300));
+      L.push(line('<span class="t">        </span>  routine aggregate reporting \u00b7 no expedited clock',220));
+    }else{
+      L.push(line('<span class="t">t+3.2s </span>  listedness \u00b7 <span class="r">event UNLISTED \u2014 not in current labelling</span>',300));
+      L.push(line('<span class="t">        </span>  <span class="r">15-day expedited reporting triggered</span> \u00b7 clock started',240));
+    }
+    L.push(line('<span class="t">t+3.3s </span>  <span class="w">HUMAN-IN-THE-LOOP GATE</span> \u00b7 awaiting qualified reviewer',420));
+    L.push(line('<span class="t">        </span>  <span class="t">recommendation presented with source text, algorithm outputs and confidence</span>',260));
+    L.push(line('<span class="t">        </span>  reviewer <span class="b">pv.scientist.02</span> \u00b7 <span class="g">ACCEPTED</span> \u00b7 no amendment',300));
+    L.push(line('<span class="t">t+3.4s </span>  E2B(R3) XML generated \u00b7 3,585 chars \u00b7 FDA FAERS + EMA EudraVigilance',300));
+    L.push(line('<span class="t">t+3.4s </span>  ICH narrative generated \u00b7 completeness grade <span class="g">A</span>',260));
+    L.push(line('<span class="t">t+3.4s </span>  BRAT benefit-risk \u00b7 ICH E2C(R2) aligned \u00b7 48ms',260));
+    L.push(line('<span class="t">t+3.5s </span>  audit record sealed \u00b7 sha256:'+hex(40),240));
+    L.push(line('<span class="t">        </span>  <span class="t">model v3.66.0 \u00b7 reviewer id \u00b7 timestamp \u00b7 config pinned \u2014 21 CFR Part 11</span>',0));
+    var acc="",d=0;
+    L.forEach(function(row){d+=row[1];timers.push(setTimeout(function(){
+      acc+=row[0]+"\n";con.innerHTML=acc+'<span class="caret"></span>';con.scrollTop=con.scrollHeight;},d));});
+    timers.push(setTimeout(function(){busy=false;btn.textContent="Process another case";},d+220));
+  });
+})();
+})();
+</script>
+</body>
+</html>
